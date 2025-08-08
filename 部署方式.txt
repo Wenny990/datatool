@@ -1,0 +1,18 @@
+1、 在 /etc/hosts 文件中，添加下面这行， ip地址换成本机
+192.168.31.239	app-server db-server redis-server nacos-server
+
+2、nacos上添加命名空间，导入nacos_config_export文件
+命名空间id：92e47c98-c24b-4bb8-83a0-e54063b0b359
+命名空间名称：datatool
+
+3、mysql创建数据库 data_tool，执行脚本文件data_tool.sql
+
+4、运行后端
+docker load < datatool.tar
+docker run --name datatool -d -p 18110:18110 -v /etc/hosts:/etc/hosts:ro  -t datatool:1.0
+
+5、运行前端
+docker load < datatool-web.tar
+docker run --name datatool-web -d -p 18109:18109 -v /etc/hosts:/etc/hosts:ro  -t datatool-web:1.0
+
+

@@ -1,0 +1,40 @@
+spring:
+  boot:
+    load-libraries: lib/*.jar
+  profiles:
+    # 使用开发环境的配置
+    active: dev
+
+nacos:
+  config:
+    bootstrap:
+    # 开启预加载配置
+      enable: true
+    # nacos服务地址
+    server-addr: nacos-server:8848
+    # nacos账号
+    username: nacos
+    # nacos密码
+    password: nacos
+    # data-id
+    data-id: application-dev.yml
+    # group
+    group: DEFAULT_GROUP
+    # 命名空间
+    namespace: 92e47c98-c24b-4bb8-83a0-e54063b0b359
+    # 配置文件类型
+    type: YAML
+    # 最大重试次数
+    max-retry: 10
+    # 自动刷新
+    auto-refresh: true
+    # 重试时间
+    config-retry-time: 2000
+    # 监听长轮询超时时间
+    config-long-poll-timeout: 46000
+
+
+
+
+
+
