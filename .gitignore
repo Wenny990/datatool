@@ -40,3 +40,4 @@ build/
 .DS_Store
 /backend/src/main/resources/static
 /.idea
+.idea
