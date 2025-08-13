@@ -1,6 +1,7 @@
 package com.wnhuang.common.service;
 
 import com.jcraft.jsch.*;
+import com.wnhuang.common.exception.BusinessException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class SessionPool {
 
-    private static final int SESSION_TIMEOUT = 1 * 60 * 1000; // 会话空闲超时时间，5分钟
+    private static final int SESSION_TIMEOUT = 120 * 60 * 1000; // 会话空闲超时时间，5分钟
 
     // 用于存储和管理会话
     private final ConcurrentHashMap<String, SessionWrapper> sessionPool = new ConcurrentHashMap<>();
@@ -46,7 +47,7 @@ public class SessionPool {
     }
 
     // 获取或创建新的会话
-    public Session getSession(String host, int port, String username, String password) throws JSchException {
+    public Session getSession(String host, int port, String username, String password) {
         SessionWrapper sessionWrapper = sessionPool.get(host);
         if (null != sessionWrapper) {
             if (sessionWrapper.isConnected()) {
@@ -59,13 +60,20 @@ public class SessionPool {
 
         log.info("没有空闲会话，创建新会话，{}", host);
         // 没有空闲会话或会话已达到通道上限，创建新会话
-        Session session = new JSch().getSession(username, host, port);
-        session.setPassword(password);
-        session.setConfig("StrictHostKeyChecking", "no");
-        session.connect(30000); // 连接超时时间
-        SessionWrapper newSessionWrapper = new SessionWrapper(session);
-        sessionPool.put(host, newSessionWrapper);
-        return newSessionWrapper.session;
+        try {
+            Session session = new JSch().getSession(username, host, port);
+            session.setPassword(password);
+            session.setConfig("StrictHostKeyChecking", "no");
+            session.connect(30000); // 连接超时时间
+            SessionWrapper newSessionWrapper = new SessionWrapper(session);
+            sessionPool.put(host, newSessionWrapper);
+            return newSessionWrapper.session;
+        } catch (JSchException e) {
+            log.error("创建会话异常，{}", e.getMessage());
+            throw new BusinessException("创建会话异常，" + e.getMessage());
+        }
+
+
     }
 
     // 创建命令执行通道

@@ -65,6 +65,15 @@ public class GlobalExceptionHandler {
         return ApiResult.fail(e.getErrorCode(), e.getMessage());
     }
 
+    /**
+     * 自定义校验异常（如参数校验等）
+     */
+    @ExceptionHandler(value = DatabaseException.class)
+    public ApiResult databaseExceptionHandler(DatabaseException e) {
+        log.info("database exception！The reason is：{}", e.getMessage(), e);
+        return ApiResult.fail(e.getErrorCode(), "数据库异常，" + e.getMessage());
+    }
+
     @ExceptionHandler(value = IllegalArgumentException.class)
     public ApiResult illegalArgumentExceptionHandler(IllegalArgumentException e) {
         log.info("illegalArgument exception！The reason is：{}", e.getMessage(), e);

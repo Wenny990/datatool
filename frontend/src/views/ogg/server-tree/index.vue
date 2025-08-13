@@ -105,7 +105,16 @@
                           @click.stop="onRefreshNode(node)"
                           >刷新
                         </el-dropdown-item>
-
+                        <el-dropdown-item
+                          :icon="Lightning"
+                          @click.stop="onGoShell(data)"
+                          >命令行</el-dropdown-item
+                        >
+                        <el-dropdown-item
+                          :icon="Plus"
+                          @click.stop="onAddProcess(data)"
+                        >添加进程
+                        </el-dropdown-item>
                         <el-dropdown-item
                           :icon="Monitor"
                           @click.stop="onMonitorServer(data)"
@@ -114,7 +123,7 @@
                         <el-dropdown-item
                           :icon="View"
                           @click.stop="onPreviewCommand(data)"
-                        >命令预览
+                          >命令预览
                         </el-dropdown-item>
                       </el-dropdown-menu>
                     </template>
@@ -135,11 +144,13 @@ import { useProcessStore } from '/@/stores/process'
 import SvgIcon from '/@/components/svgIcon/index.vue'
 import {
   Delete,
+  Lightning,
   Monitor,
   Plus,
   Refresh,
   VideoPause,
-  VideoPlay, View
+  VideoPlay,
+  View,
 } from '@element-plus/icons-vue'
 import { useRequest } from 'alova/client'
 import apis from '@/service/apis'
@@ -288,12 +299,12 @@ const onMonitorServer = data => {
   toComponent(data1)
 }
 
-const onPreviewCommand = (data) => {
+const onPreviewCommand = data => {
   const data1 = {
     title: '服务器命令预览-' + data.serverName,
     key: 'CommandPreview' + '-' + data.id,
     type: 'CommandPreview',
-    data: data
+    data: data,
   }
   toComponent(data1)
 }

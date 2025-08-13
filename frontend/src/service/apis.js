@@ -65,6 +65,11 @@ export default {
           } else {
             dataxJob.reader = {}
           }
+          if (isJsonStr(dataxJob.transformer)) {
+            dataxJob.transformer = JSON.parse(dataxJob.transformer)
+          } else {
+            dataxJob.transformer = []
+          }
           if (isJsonStr(dataxJob.splitParams)) {
             dataxJob.splitParams = JSON.parse(dataxJob.splitParams)
           } else {
@@ -102,6 +107,7 @@ export default {
     data.writer = encryptDES(JSON.stringify(data.writer))
     data.reader = encryptDES(JSON.stringify(data.reader))
     data.splitParams = encryptDES(JSON.stringify(data.splitParams))
+    data.transformer = encryptDES(JSON.stringify(data.transformer))
     return postRequest('/dataxJob', data)
   },
   // 删除任务
@@ -135,7 +141,7 @@ export default {
   // 检查数据连接
   checkRepo: data => postRequest('/repo' + '/checkRepo', data),
 //解析sql语句
-  parseSql: sql => postRequest('/repo' + '/parseSql', { sql: sql }),
+  parseSql: data => postRequest('/repo' + '/parseSql', data),
   //查询sql语句
   execPageQuery: data => postRequest('/repo' + '/execPageQuery', data),
   // 获取数据库连接配置列表
@@ -193,6 +199,9 @@ export default {
   getMonitorInfoNoCache: () => getRequest('/process' + '/monitor/nocache'),
   // 预览命令结果
   previewCommandResult: data => postRequest('/process' + '/commandPreview', data),
+  //ogg的ggsci下执行命令
+  commandByOgg: data => postRequest('/process' + '/commandByOgg', data),
+
 
 
   // 获取定义文件参数

@@ -155,8 +155,8 @@
       <div class="flex-center flex-auto tab-container bd">
         <el-tabs v-model="state.activeName" class="h100 flex-center">
           <el-tab-pane label="进程统计" name="first" class="w100 h100" lazy>
-            <div class="w100 h100">
-              <div style="text-align: right; z-index: 9999" class="mr12">
+            <div class="w100 h100 flex-center">
+              <div style="text-align: right; z-index: 9999" class="mr12 mt12">
                 <el-radio-group v-model="totalModel">
                   <el-radio-button label="chart">
                     <el-tooltip content="图表">
@@ -172,25 +172,27 @@
                   </el-radio-button>
                 </el-radio-group>
               </div>
-              <total-chart
-                v-if="totalModel === 'chart'"
-                :data="currProcess.details"
-              ></total-chart>
-              <el-table v-else :data="currProcess.details" height="100%">
-                <el-table-column type="index" width="60"></el-table-column>
-                <el-table-column prop="from" label="来源"></el-table-column>
-                <el-table-column prop="to" label="目标"></el-table-column>
-                <el-table-column
-                  prop="operationsTotal"
-                  label="记录数"
-                  width="120"
-                ></el-table-column>
-                <el-table-column
-                  prop="sinceTime"
-                  label="开始时间"
-                  width="180"
-                ></el-table-column>
-              </el-table>
+              <div class="flex-auto">
+                <total-chart
+                  v-if="totalModel === 'chart'"
+                  :data="currProcess.details"
+                ></total-chart>
+                <el-table v-else :data="currProcess.details" height="100%">
+                  <el-table-column type="index" width="60"></el-table-column>
+                  <el-table-column prop="from" label="来源"></el-table-column>
+                  <el-table-column prop="to" label="目标"></el-table-column>
+                  <el-table-column
+                    prop="operationsTotal"
+                    label="记录数"
+                    width="120"
+                  ></el-table-column>
+                  <el-table-column
+                    prop="sinceTime"
+                    label="开始时间"
+                    width="180"
+                  ></el-table-column>
+                </el-table>
+              </div>
             </div>
           </el-tab-pane>
           <el-tab-pane label="进程参数" name="second" class="h100" lazy>

@@ -2,6 +2,7 @@ package com.wnhuang.ogg.service.impl;
 
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.TimeInterval;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.dynamic.datasource.toolkit.DynamicDataSourceContextHolder;
 import com.wnhuang.common.aviator.AviatorUtils;
@@ -13,22 +14,20 @@ import com.wnhuang.common.service.MonitorServerInfoService;
 import com.wnhuang.common.service.RepositorySourceService;
 import com.wnhuang.common.utils.DesUtil;
 import com.wnhuang.common.utils.JschUtil;
+import com.wnhuang.common.websocket.handle.shell.CommandOutputCallback;
+import com.wnhuang.common.websocket.handle.shell.SshSessionHolder;
 import com.wnhuang.ogg.domain.entity.OggConfig;
 import com.wnhuang.ogg.domain.entity.OggGenerateConfig;
 import com.wnhuang.ogg.domain.entity.OggProcess;
 import com.wnhuang.ogg.domain.entity.OggProcessDetail;
 import com.wnhuang.ogg.domain.enums.OggProcessTypeEnum;
-import com.wnhuang.ogg.domain.request.OggCommandRequest;
-import com.wnhuang.ogg.domain.request.OggDefFileBaseRequest;
-import com.wnhuang.ogg.domain.request.OggDefFileSaveRequest;
-import com.wnhuang.ogg.domain.request.OggDefFileUploadRequest;
+import com.wnhuang.ogg.domain.request.*;
 import com.wnhuang.ogg.domain.response.OggDefFileResp;
 import com.wnhuang.ogg.domain.response.OggMonitorVo;
 import com.wnhuang.ogg.service.OggProcessService;
 import com.wnhuang.ogg.service.ServerCommandService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -60,23 +59,11 @@ public class OggProcessServiceImpl implements OggProcessService {
     RepositorySourceService repositorySourceService;
 
 
-
     @Autowired
     ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
     @Autowired
     CommandExecuteService commandExecuteService;
-
-    @Value("${ogg.refreshTime: 30}")
-    private Long REFRESH_TIMEOUT;
-
-    private final String OGG_MONITOR_KEY = "ogg:monitor:info";
-    private final String OGG_MONITOR_TIME_KEY = "ogg:monitor:info_time";
-    private final String OGG_MONITOR_RUNNING_KEY = "ogg:monitor:running";
-
-    private final Timer refreshOggMonitorTimer = new Timer(true); // 定时任务清理器
-
-
 
 
     @Override
@@ -118,7 +105,6 @@ public class OggProcessServiceImpl implements OggProcessService {
     private Integer getType(String processName) {
         return OggProcessTypeEnum.of(processName.toUpperCase().substring(0, 3)).getType();
     }
-
 
 
     /**
@@ -735,6 +721,56 @@ public class OggProcessServiceImpl implements OggProcessService {
         MonitorServerInfo serverInfo = serverInfoService.getById(request.getServerId());
         String command = request.getCommand();
         return JschUtil.execCommand(serverInfo, command);
+    }
+
+    @Override
+    public String commandByOgg(OggCommandListRequest request) {
+        MonitorServerInfo serverInfo = serverInfoService.getById(request.getServerId());
+        String endChar = serverInfo.getServerOs().equals("01") ? "\r" : "\n";
+        String command = serverCommandService.getCommand(serverInfo.getServerOs(), 23);
+        SshSessionHolder shellSession = commandExecuteService.createShellSession(serverInfo);
+        final String[] out = {""};
+        shellSession.init(new CommandOutputCallback() {
+            @Override
+            public void onOutput(String output) {
+                out[0] = out[0] + output;
+            }
+
+            @Override
+            public void onError(String error) {
+                out[0] = out[0] + error;
+            }
+
+            @Override
+            public void onComplete(int exitCode) {
+                out[0] = out[0] + "执行结束，返回：" + exitCode;
+            }
+        });
+        shellSession.write(AviatorUtils.compileSql(command, JSONUtil.parseObj(serverInfo)) + endChar);
+
+        try {
+            while (StrUtil.isBlank(out[0])) {
+                Thread.sleep(200);
+            }
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        request.getCommandList().forEach(t -> {
+            int length = out[0].length();
+            shellSession.write(t + endChar);
+            try {
+                while (out[0].length() <= length){
+                    Thread.sleep(200);
+                }
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        shellSession.close();
+        out[0] = out[0].replaceAll("\u001B\\[[;\\d]*[ -/]*[@-~]", "");
+        return out[0];
     }
 }
 

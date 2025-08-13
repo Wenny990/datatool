@@ -1,384 +1,591 @@
 <template>
-  <div class="create-process-container h100 flex-center">
-    <div class="step-container">
-      <el-steps :active="active" finish-status="success">
-        <el-step title="选择数据库"/>
-        <el-step title="选择表"/>
-        <el-step title="配置项"/>
-        <el-step title="预览"/>
-        <el-step title="执行"/>
-        <el-step title="完成"/>
-      </el-steps>
-    </div>
-    <div class="flex-auto container-main">
-      <el-form :model="oggGenerateConfig" ref="formRef" label-width="120px">
-        <el-row v-if="active === 0">
-          <el-form-item label="进程名称" prop="processName" :rules="[
-        { required: true, message: '请输入进程名称' },
-      ]">
-            <el-input v-model="oggGenerateConfig.processName" :maxlength="5"></el-input>
-          </el-form-item>
-          <el-form-item label="源端服务器" prop="sourceServerId" :rules="[
-        { required: true, message: '请选择源端服务器' },
-      ]">
-            <el-select v-model="oggGenerateConfig.sourceServerId">
-              <el-option v-for="item in serverList" :key="item.id" :label="item.serverName" :value="item.id"/>
+  <div class="ogg-container h100 pd20 create-process-container">
+    <el-form :model="processForm" label-width="100px" label-position="left">
+      <!-- 进程名称输入 -->
+      <el-form-item label="进程名称">
+        <el-input
+          v-model="processForm.name"
+          placeholder="请输入进程名称"
+          @change="handleNameChange"
+          @input="handleNameChange"
+          :maxlength="4"
+        />
+      </el-form-item>
+
+      <!-- 功能选择多选框 -->
+      <el-form-item label="选择功能">
+        <el-checkbox-group
+          v-model="processForm.functions"
+          @change="generateStatements"
+        >
+          <el-checkbox label="extract">抓取 (Extract)</el-checkbox>
+          <el-checkbox label="pump">投递 (Pump)</el-checkbox>
+          <el-checkbox label="replicat">复制 (Replicat)</el-checkbox>
+        </el-checkbox-group>
+      </el-form-item>
+
+      <el-row :gutter="180">
+        <el-col
+          :span="12"
+          v-if="
+            processForm.functions.includes('extract') ||
+            processForm.functions.includes('pump')
+          "
+        >
+          <el-form-item label="源端">
+            <el-select
+              v-model="processForm.sourceServer"
+              @change="handleServerChange"
+            >
+              <el-option
+                v-for="item in serverList"
+                :key="item.id"
+                :label="item.serverName"
+                :value="item.id"
+              ></el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="目标端服务器" prop="targetServerId" :rules="[
-        { required: true, message: '请选择目标端服务器' },
-      ]">
-            <el-select v-model="oggGenerateConfig.targetServerId">
-              <el-option v-for="item in serverList" :key="item.id" :label="item.serverName" :value="item.id"/>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item
+            label="目标端"
+            v-if="processForm.functions.includes('replicat')"
+          >
+            <el-select
+              v-model="processForm.targetServer"
+              @change="handleServerChange"
+            >
+              <el-option
+                v-for="item in serverList"
+                :key="item.id"
+                :label="item.serverName"
+                :value="item.id"
+              ></el-option>
             </el-select>
           </el-form-item>
-        </el-row>
-        <el-row v-if="active === 1">
-          <el-form-item label="目标端实例" prop="targetDbSchema" :rules="[
-        { required: true, message: '请选择目标端数据库实例' },
-      ]">
-            <el-select v-model="oggGenerateConfig.targetDbSchema" filterable>
-              <el-option v-for="item in targetDbSchemaList" :key="item.schemaName" :label="item.schemaName"
-                         :value="item.schemaName"/>
-            </el-select>
+        </el-col>
+      </el-row>
+    </el-form>
+
+    <div class="flex gap10">
+      <div
+        v-if="processForm.functions.includes('extract')"
+        class="config-section flex-auto"
+      >
+        <h3>抓取进程配置</h3>
+        <el-form
+          :model="extractConfig"
+          label-width="100px"
+          label-position="left"
+        >
+          <el-form-item label="进程名">
+            <el-input
+              v-model="extractConfig.name"
+              placeholder="根据名称自动生成"
+              @change="generateStatements"
+            >
+            </el-input>
           </el-form-item>
-          <el-form-item label="源端数据库" prop="sourceDbSchema" :rules="[
-        { required: true, message: '请选择源端数据库实例' },
-      ]">
-            <el-select v-model="oggGenerateConfig.sourceDbSchema" filterable>
-              <el-option v-for="item in sourceDbSchemaList" :key="item.schemaName" :label="item.schemaName"
-                         :value="item.schemaName"/>
-            </el-select>
+          <el-form-item label="开始时间">
+            <el-input
+              v-model="extractConfig.beginTime"
+              placeholder="开始时间,NOW 或者 YYYY-MM-DD HH24:MI:SS"
+              @change="generateStatements"
+            >
+            </el-input>
           </el-form-item>
-          <el-form-item label="数据表" prop="tableList" :rules="[
-        { required: true, message: '请选择要抽取的表' },
-      ]">
-            <el-transfer
-                v-model="oggGenerateConfig.tableList"
-                v-loading="state.tableLoading"
-                style="text-align: left; display: inline-block"
-                filterable
-                :titles="['源端', '目标端']"
-                :data="tableList"
-                :props="{key: 'tableName',
-      label: 'tableName',
-      disabled: 'notkey'}"
+
+          <el-form-item label="Trail文件路径">
+            <el-input
+              v-model="extractConfig.trailPath"
+              placeholder="./dirdat/et"
+              @input="generateStatements"
             />
           </el-form-item>
-        </el-row>
-        <el-row :gutter="35" v-if="active===2" v-show="!showConfig">
-          <div class="flex w100" style="position: relative">
-            <div class="flex-auto flex-center h100" style="border-right: solid 1px var(--el-border-color);position: relative">
-              <div style="position: sticky;top: 0">
-                <svg-icon name="iconfont icon-dian" color="var(--el-color-primary)"></svg-icon>
-                <el-text style="font-weight: bold">
-                  源端配置
-                </el-text>
-              </div>
-              <div class="flex-auto pd20">
-                <el-form-item label="抓取进程名称" prop="extName" :rules="[
-        { required: true, message: '请输入抓取进程名称' },
-      ]">
-                  <el-input v-model="oggGenerateConfig.extName" placeholder="最多5个字母" :max-length="5"></el-input>
-                </el-form-item>
-                <el-form-item label="投递进程名称" prop="pumName" :rules="[
-        { required: true, message: '请输入投递进程名称' },
-      ]">
-                  <el-input v-model="oggGenerateConfig.pumName" placeholder="最多5个字母" :max-length="5"></el-input>
-                </el-form-item>
-                <el-form-item label="源端trail" prop="sourceTrailPath" :rules="[
-        { required: true, message: '源端trail文件路径不能为空' },
-      ]">
-                  <el-input v-model="oggGenerateConfig.sourceTrailPath" placeholder="请输入源端trail文件路径"
-                            clearable></el-input>
-                </el-form-item>
-                <el-row>
-                  <el-form-item label="开启附加日志">
-                    <el-checkbox v-model="oggGenerateConfig.addTranData" type="textarea"
-                                 maxlength="150"></el-checkbox>
-                  </el-form-item>
-                  <el-form-item label="全部列" v-show="oggGenerateConfig.addTranData">
-                    <el-checkbox v-model="oggGenerateConfig.allCol" type="textarea"
-                                 maxlength="150"></el-checkbox>
-                  </el-form-item>
-                </el-row>
-                <el-form-item label="初始化" prop="isInit">
-                  <el-checkbox v-model="oggGenerateConfig.isInit">
-                  </el-checkbox>
-                </el-form-item>
-                <div v-show="false">
-                  <el-form-item label="文件大小">
-                    <el-input-number v-model="oggGenerateConfig.megaBytes" placeholder="单位MB"
-                                     :min="10"></el-input-number>
-                  </el-form-item>
-                  <el-form-item label="文件序号">
-                    <el-input-number v-model="oggGenerateConfig.extSeqNo" placeholder="从哪个Trail 文件中读取数据"
-                                     :min="0"></el-input-number>
-                  </el-form-item>
-                  <el-form-item label="文件rba">
-                    <el-input-number v-model="oggGenerateConfig.extRba" placeholder="从哪个位置开始读取数据"
-                                     :min="0"></el-input-number>
-                  </el-form-item>
-                </div>
-                <el-row>
-                  <el-form-item label="格式化">
-                    <el-checkbox v-model="oggGenerateConfig.format"></el-checkbox>
-                  </el-form-item>
-                  <el-form-item label="版本" v-show="oggGenerateConfig.format">
-                    <el-input v-model="oggGenerateConfig.formatRelease"></el-input>
-                  </el-form-item>
-                </el-row>
-                <el-form-item label="创建子目录">
-                  <el-checkbox v-model="oggGenerateConfig.createSubdirs" type="textarea"
-                               maxlength="150"></el-checkbox>
-                </el-form-item>
-                <el-form-item label="NLS_LANG" v-show="oggGenerateConfig.sourceRepo.dataProviderType == '3'">
-                  <el-select v-model="oggGenerateConfig.sourceNlsLang">
-                    <el-option v-for="item in LangType" :key="item" :label="item" :value="item"/>
-                  </el-select>
-                </el-form-item>
-                <div v-if="oggGenerateConfig.sourceRepo.dataProviderType == '2'">
-                  <el-form-item label="mysql_home">
-                    <el-input v-model="oggGenerateConfig.mysqlHome" placeholder="mysql的Home目录"
-                              clearable></el-input>
-                  </el-form-item>
-                  <el-form-item label="tranlogOptions">
-                    <el-input v-model="oggGenerateConfig.tranlogOptions"
-                              clearable></el-input>
-                  </el-form-item>
-                  <el-form-item label="dbOptions">
-                    <el-input v-model="oggGenerateConfig.dbOptions"
-                              clearable></el-input>
-                  </el-form-item>
-                </div>
-              </div>
-            </div>
-            <div class="flex-auto flex-center">
-              <div style="position: sticky;top: 0">
-                <svg-icon name="iconfont icon-dian" color="var(--el-color-primary)"></svg-icon>
-                <el-text style="font-weight: bold">目标端配置</el-text>
-              </div>
-              <div class="flex-auto pd20">
-                <el-form-item label="复制进程名称" prop="repName" :rules="[
-        { required: true, message: '请输入复制进程名称' },
-      ]">
-                  <el-input v-model="oggGenerateConfig.repName" placeholder="最多5个字母" :max-length="5"></el-input>
-                </el-form-item>
 
-                <el-form-item label="目标trail" prop="targetTrailPath" :rules="[
-        { required: true, message: '目标trail文件路径不能为空' },
-      ]">
-                  <el-input v-model="oggGenerateConfig.targetTrailPath" placeholder="请输入目标trail文件路径"
-                            clearable></el-input>
-                </el-form-item>
-                <el-row>
-                  <el-form-item label="创建检查点表">
-                    <el-checkbox v-model="oggGenerateConfig.addCheckPointTable" type="textarea"
-                                 maxlength="150"></el-checkbox>
-                  </el-form-item>
-                  <el-form-item label="检查点表" v-show="oggGenerateConfig.addCheckPointTable">
-                    <el-input v-model="oggGenerateConfig.checkPointTable" placeholder="每个数据库实例共用一个"
-                              maxlength="150"></el-input>
-                  </el-form-item>
-                </el-row>
+          <el-form-item label="文件大小(MB)">
+            <el-input-number
+              v-model="extractConfig.fileSize"
+              :min="1"
+              :max="1000"
+              @change="generateStatements"
+            />
+          </el-form-item>
 
-                <el-form-item label="NLS_LANG" v-show="oggGenerateConfig.targetRepo.dataProviderType == '3'">
-                  <el-select v-model="oggGenerateConfig.targetNlsLang">
-                    <el-option v-for="item in LangType" :key="item" :label="item" :value="item"/>
-                  </el-select>
-                </el-form-item>
-
-                <el-row>
-                  <el-form-item label="多线程初始化" prop="isRange" v-if="oggGenerateConfig.isInit">
-                    <el-checkbox v-model="oggGenerateConfig.isRange">
-                    </el-checkbox>
-                  </el-form-item>
-                  <el-form-item label="线程数" prop="rinRange" v-if="oggGenerateConfig.isInit && oggGenerateConfig.isRange">
-                    <el-input-number v-model="oggGenerateConfig.rinRange">
-                    </el-input-number>
-                  </el-form-item>
-                </el-row>
-
-              </div>
-            </div>
-          </div>
-        </el-row>
-        <el-row class="h100" v-if="active===2 && showConfig">
-          <code-editor v-model="oggGenerateConfigJsonStr" type="json" :disabled="false">
-            <el-button size="small" @click="saveGenerateConfigJson" type="success">保存</el-button>
-          </code-editor>
-        </el-row>
-      </el-form>
-      <div class="h100 " v-if="active===3">
-        <ogg-config-panel/>
+          <el-row>
+            <el-checkbox
+              v-model="extractConfig.isThread"
+              class="mr20"
+              @change="generateStatements"
+              >指定线程</el-checkbox
+            >
+            <el-input-number
+              v-if="extractConfig.isThread"
+              v-model="extractConfig.threadNum"
+              :min="1"
+              :max="100"
+              @change="generateStatements"
+            />
+          </el-row>
+        </el-form>
       </div>
-      <div class="h100 " v-if="active>=4" v-show="active===4">
-        <ogg-build/>
+
+      <div v-if="processForm.functions.includes('pump')" class="config-section">
+        <h3>投递进程配置</h3>
+        <el-form :model="pumpConfig" label-width="100px" label-position="left">
+          <el-form-item label="进程名">
+            <el-input
+              v-model="pumpConfig.name"
+              placeholder="根据名称自动生成"
+              @change="generateStatements"
+            >
+            </el-input>
+          </el-form-item>
+
+          <el-form-item label="源Trail文件">
+            <el-input
+              v-model="pumpConfig.sourceTrail"
+              placeholder="./dirdat/et"
+              @input="generateStatements"
+            />
+          </el-form-item>
+
+          <el-form-item label="目标Trail文件">
+            <el-input
+              v-model="pumpConfig.targetTrail"
+              placeholder="./dirdat/rt"
+              @input="generateStatements"
+            />
+          </el-form-item>
+
+          <el-form-item label="文件大小(MB)">
+            <el-input-number
+              v-model="pumpConfig.fileSize"
+              :min="1"
+              :max="1000"
+              @change="generateStatements"
+            />
+          </el-form-item>
+        </el-form>
       </div>
-      <div class="h100 " v-if="active===5">
-        <el-result
-            icon="success"
-            title="执行完成"
-            sub-title="请刷新左侧进程查看结果"
+
+      <div
+        v-if="processForm.functions.includes('replicat')"
+        class="config-section"
+      >
+        <h3>复制进程配置</h3>
+        <el-form
+          :model="replicatConfig"
+          label-width="100px"
+          label-position="left"
         >
-          <template #extra>
-            <el-text>
-              <div>1、启动抓取进程</div>
-              <div>2、启动源端初始化进程以及目标端初始化进程</div>
-              <div>3、等待初始化进程都执行结束后</div>
-              <div>4、启动投递进程及复制进程</div>
-            </el-text>
-          </template>
-        </el-result>
+          <el-form-item label="进程名">
+            <el-input
+              v-model="replicatConfig.name"
+              placeholder="根据名称自动生成"
+              @change="generateStatements"
+            >
+            </el-input>
+          </el-form-item>
+          <el-form-item label="源Trail文件">
+            <el-input
+              v-model="replicatConfig.sourceTrail"
+              placeholder="./dirdat/rt"
+              @input="generateStatements"
+            />
+          </el-form-item>
+
+          <el-form-item label="检查点表">
+            <el-input
+              v-model="replicatConfig.checkpointTable"
+              placeholder="ogg.checkpoint"
+              @input="generateStatements"
+            />
+          </el-form-item>
+        </el-form>
       </div>
     </div>
-    <div class="footer">
-      <el-button @click="next(-1)" v-if="active > 0">上一步</el-button>
-      <el-button type="primary" @click="next(1)" v-if="active < 5">下一步</el-button>
-      <el-button v-if="active===2" @click="toEditConfig">编辑配置项</el-button>
+    <!-- 根据选择的功能显示对应配置 -->
+
+    <!-- 生成的语句展示 -->
+    <div class="statements-section">
+      <h3>生成语句</h3>
+      <div class="flex gap20">
+        <div class="flex-auto">
+          <code-editor
+            type="sql"
+            disabled
+            v-model="generatedStatements"
+            placeholder="源端"
+          ></code-editor>
+        </div>
+        <div class="flex-auto">
+          <code-editor
+            type="sql"
+            disabled
+            v-model="generatedStatementsTarget"
+            placeholder="目标端"
+          ></code-editor>
+        </div>
+      </div>
     </div>
+
+    <div class="action-buttons">
+      <el-button type="primary" @click="saveProcess" plain v-loading="loading"
+        >保存进程</el-button
+      >
+      <el-button @click="dialogVisible = true" plain type="success"
+        >执行结果</el-button
+      >
+      <el-button @click="resetForm">重置</el-button>
+    </div>
+    <el-dialog v-model="dialogVisible" title="执行进度">
+      <div class="flex-center pd20" style="height: 60vh">
+        <code-editor
+          v-model="execResultText"
+          type="sql"
+          :disabled="true"
+        ></code-editor>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
-<script setup>
-import {useServerApi} from "/@/api/monitor_server";
-import {useProcessStore} from "/@/stores/process";
-import {watchEffect} from "vue";
-import {useRepoApi} from "/@/api/repo";
-import {initOggGenerateConfig} from './index';
-import {storeToRefs} from "pinia";
-import OggConfigPanel from "./ogg-config.vue";
-import OggBuild from "./ogg-build.vue";
-import CodeEditor from "/@/components/codeEditor/index.vue";
-import {ElMessage} from "element-plus";
-import SvgIcon from "/@/components/svgIcon/index.vue";
+<script setup lang="ts">
+import { ref, reactive, onMounted, computed } from 'vue'
+import { useRequest } from 'alova/client'
+import apis from '@/service/apis'
+import CodeEditor from '@/components/codeEditor/index.vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
-const state = reactive({
-  tableLoading: false,
-  schemaLoading: false
-});
+// 获取服务器的目录分隔符
+const getDirectorySeparator = (serverId: string) => {
+  const server = serverList.value.find(t => t.id === serverId)
+  if (!server) return '/'
 
-const active = ref(0)
-const formRef = ref('')
-const serverList = ref([])
-const {getServerList} = useServerApi();
-const {getSchemas, getTables} = useRepoApi();
+  // 01 表示 Windows，使用 \
+  // 02 表示 Linux，使用 /
+  return server.serverOs === '01' ? '\\' : '/'
+}
 
-const showConfig = ref(false)
+// 格式化路径为对应操作系统的格式
+const formatPathForOS = (path: string, serverId: string) => {
+  const separator = getDirectorySeparator(serverId)
+  // 将路径中的 / 或 \ 统一替换为对应操作系统的分隔符
+  return path.replace(/[\/\\]/g, separator)
+}
 
-const LangType = ['AMERICAN_AMERICA.ZHS16GBK', 'CHINESE_CHINA.ZHS16GBK', 'AMERICAN_AMERICA.US7ASCII', 'AMERICAN_AMERICA.UTF-8']
-
-const processStore = useProcessStore();
-
-const {oggGenerateConfig} = storeToRefs(processStore)
-
-const sourceDbSchemaList = ref([])
-const targetDbSchemaList = ref([])
-const tableList = ref([])
-
-watch(() => ({
-  server: oggGenerateConfig.value.sourceServer,
-  sourceDbSchema: oggGenerateConfig.value.sourceDbSchema
-}), (oldVal, newVal) => {
-  if (oldVal.server?.id !== newVal.server?.id || oldVal.sourceDbSchema != newVal.sourceDbSchema) {
-    if (oggGenerateConfig.value.sourceServer?.repositorySourceId && oggGenerateConfig.value.sourceDbSchema) {
-      oggGenerateConfig.value.tableList = []
-      state.tableLoading = true
-      getTables({
-        id: oggGenerateConfig.value.sourceServer.repositorySourceId,
-        schemaName: oggGenerateConfig.value.sourceDbSchema
-      }).then(resp => {
-        tableList.value = resp.data.map(t => {
-          return {
-            ...t,
-            notkey: t.notkey === 1
-          }
-        })
-      }).finally(() => state.tableLoading = false)
-    }
-  }
+// 表单数据
+const processForm = reactive({
+  name: '',
+  functions: [] as string[],
+  sourceServer: '',
+  targetServer: '',
 })
-const next = (step) => {
-  if (step === -1) {
-    active.value--;
-    return;
-  }
-  formRef.value.validate((valid) => {
-    if (valid) {
-      if (active.value === 0 && step === 1) {
-        Promise.all([
-          getSchemas(oggGenerateConfig.value.targetServer?.repositorySourceId),
-          getSchemas(oggGenerateConfig.value.sourceServer?.repositorySourceId)
-        ]).then(resp => {
-          targetDbSchemaList.value = resp[0].data
-          sourceDbSchemaList.value = resp[1].data
-          active.value += step;
-        })
-      } else if (active.value === 1) {
-        initOggGenerateConfig(oggGenerateConfig.value);
-        active.value += step;
-      } else {
-        active.value += step;
-        if (active.value > 5) active.value = 0
-      }
+
+// Extract配置
+const extractConfig = reactive({
+  name: '',
+  sourceType: 'TRANLOG',
+  beginTime: 'NOW',
+  trailPath: './dirdat/et',
+  fileSize: 100,
+  isThread: false,
+  threadNum: 2,
+})
+
+// Pump配置
+const pumpConfig = reactive({
+  name: '',
+  sourceTrail: './dirdat/et',
+  targetTrail: './dirdat/rt',
+  fileSize: 100,
+})
+
+// Replicat配置
+const replicatConfig = reactive({
+  name: '',
+  sourceTrail: './dirdat/rt',
+  checkpointTable: 'public.ckp',
+})
+
+const statements = ref({
+  source: [],
+  target: [],
+})
+
+// 生成的语句
+const generatedStatements = ref('')
+const generatedStatementsTarget = ref('')
+const execResult = ref([])
+const dialogVisible = ref(false)
+
+const execResultText = computed(() => execResult.value.join('\n'))
+
+const loading = ref(false)
+
+// 生成语句的方法
+const generateStatements = () => {
+  statements.value.source = []
+
+  const processName = processForm.name.toLowerCase()
+  if (processForm.functions.includes('extract')) {
+    let mkdir =
+      'sh mkdir ' +
+      (getDirectorySeparator(processForm.sourceServer) === '/' ? '-p ' : '') +
+      formatPathForOS(`./dirdat/${processName}`, processForm.sourceServer)
+    statements.value.source.push(mkdir)
+    let statement = `ADD EXTRACT ${extractConfig.name}, ${extractConfig.sourceType}, BEGIN ${extractConfig.beginTime}`
+
+    if (extractConfig.isThread) {
+      statement += `, THREADS ${extractConfig.threadNum}`
     }
-  })
-}
-
-const oggGenerateConfigJsonStr = ref('');
-
-const toEditConfig = () => {
-  showConfig.value = !showConfig.value;
-  if (showConfig.value) {
-    oggGenerateConfigJsonStr.value = JSON.stringify(oggGenerateConfig.value, null, 4)
+    statements.value.source.push(statement)
+    statements.value.source.push(
+      `ADD EXTTRAIL ${extractConfig.trailPath}, EXTRACT ${extractConfig.name}, MEGABYTES ${extractConfig.fileSize}`,
+    )
   }
+
+  if (processForm.functions.includes('pump')) {
+    statements.value.source.push(
+      `ADD EXTRACT ${pumpConfig.name}, EXTTRAILSOURCE ${pumpConfig.sourceTrail} ,EXTSEQNO 0,EXTRBA 0`,
+    )
+    statements.value.source.push(
+      `ADD RMTTRAIL ${pumpConfig.targetTrail}, EXTRACT ${pumpConfig.name}, MEGABYTES ${pumpConfig.fileSize}`,
+    )
+  }
+  statements.value.target = []
+  if (processForm.functions.includes('replicat')) {
+    statements.value.target.push(
+      `ADD REPLICAT ${replicatConfig.name}, EXTTRAIL ${replicatConfig.sourceTrail},EXTSEQNO 0,EXTRBA 0,checkpointtable ${replicatConfig.checkpointTable}`,
+    )
+  }
+
+  generatedStatements.value = `##源端##\n` + statements.value.source.join('\n')
+  generatedStatementsTarget.value =
+    `##目标端##\n` + statements.value.target.join('\n')
 }
-const saveGenerateConfigJson = () => {
+
+const { send } = useRequest(data => apis.commandByOgg(data), {
+  immediate: false,
+})
+
+// 保存进程
+const saveProcess = async () => {
+  if (!processForm.name) {
+    ElMessage.warning('请输入进程名称')
+    return
+  }
+
+  if (processForm.functions.length === 0) {
+    ElMessage.warning('请选择至少一个功能')
+    return
+  }
+
+  if (
+    processForm.functions.includes('pump') ||
+    processForm.functions.includes('extract')
+  ) {
+    if (!processForm.sourceServer) {
+      ElMessage.warning('请选择正确的源端服务器')
+      return
+    }
+  }
+
+  if (processForm.functions.includes('replicat')) {
+    if (!processForm.targetServer) {
+      ElMessage.warning('请选择正确的目标端服务器')
+      return
+    }
+  }
+
+  dialogVisible.value = true
+  execResult.value = []
+  loading.value = true
+
   try {
-    oggGenerateConfig.value = JSON.parse(oggGenerateConfigJsonStr.value)
-  } catch (e) {
-    ElMessage.warning('格式不正确')
+    if (
+      processForm.functions.includes('pump') ||
+      processForm.functions.includes('extract')
+    ) {
+      execResult.value.push('##源端##')
+
+      const resp = await send({
+        commandList: statements.value.source,
+        serverId: processForm.sourceServer,
+      })
+      execResult.value.push(resp)
+
+      execResult.value.push('')
+    }
+
+    if (processForm.functions.includes('replicat')) {
+      execResult.value.push('##目标端##')
+
+      const resp1 = await send({
+        commandList: statements.value.target,
+        serverId: processForm.targetServer,
+      })
+      execResult.value.push(resp1)
+    }
+    execResult.value.push('执行完成！！')
+    ElMessage.success('执行完成！！')
+  } catch (error: any) {
+    execResult.value.push(`执行出错: ${error.message || '未知错误'}`)
+  } finally {
+    loading.value = false
   }
 }
 
-watchEffect(() => {
-  oggGenerateConfig.value.sourceServer = serverList.value.find(t => t.id === oggGenerateConfig.value.sourceServerId)
-  oggGenerateConfig.value.targetServer = serverList.value.find(t => t.id === oggGenerateConfig.value.targetServerId)
+// 重置表单
+const resetForm = () => {
+  processForm.name = ''
+  processForm.functions = []
+  extractConfig.name = ''
+  extractConfig.sourceType = 'TRANLOG'
+  extractConfig.beginTime = 'NOW'
+  extractConfig.trailPath = './dirdat/et'
+  extractConfig.fileSize = 100
+  pumpConfig.sourceTrail = './dirdat/et'
+  pumpConfig.targetTrail = './dirdat/rt'
+  pumpConfig.fileSize = 100
+  replicatConfig.sourceTrail = './dirdat/rt'
+  replicatConfig.checkpointTable = 'public.checkpoint'
+  generatedStatements.value = ''
+}
+
+const handleNameChange = () => {
+  if (!processForm.name) return
+  extractConfig.name = 'EXT' + processForm.name.toUpperCase()
+  pumpConfig.name = 'PUM' + processForm.name.toUpperCase()
+  replicatConfig.name = 'REP' + processForm.name.toUpperCase()
+  extractConfig.trailPath = './dirdat/' + processForm.name.toLowerCase() + '/ea'
+  pumpConfig.sourceTrail = './dirdat/' + processForm.name.toLowerCase() + '/ea'
+  pumpConfig.targetTrail = './dirdat/' + processForm.name.toLowerCase() + '/ta'
+  replicatConfig.sourceTrail =
+    './dirdat/' + processForm.name.toLowerCase() + '/ta'
+  handleServerChange()
+}
+
+// 处理服务器变更的函数
+const handleServerChange = () => {
+  // 处理源端服务器变更
+  if (processForm.sourceServer) {
+    const sourceSeparator = getDirectorySeparator(processForm.sourceServer)
+
+    // 更新 Extract 配置中的路径分隔符
+    if (extractConfig.trailPath) {
+      extractConfig.trailPath = formatPathForOS(
+        extractConfig.trailPath,
+        processForm.sourceServer,
+      )
+    }
+
+    // 更新 Pump 配置中的路径分隔符
+    if (pumpConfig.sourceTrail) {
+      pumpConfig.sourceTrail = formatPathForOS(
+        pumpConfig.sourceTrail,
+        processForm.sourceServer,
+      )
+    }
+
+    if (pumpConfig.targetTrail) {
+      pumpConfig.targetTrail = formatPathForOS(
+        pumpConfig.targetTrail,
+        processForm.targetServer,
+      )
+    }
+  }
+
+  // 处理目标端服务器变更
+  if (processForm.targetServer) {
+    const targetSeparator = getDirectorySeparator(processForm.targetServer)
+
+    // 更新 Replicat 配置中的路径分隔符
+    if (replicatConfig.sourceTrail) {
+      replicatConfig.sourceTrail = formatPathForOS(
+        replicatConfig.sourceTrail,
+        processForm.targetServer,
+      )
+    }
+  }
+
+  // 重新生成语句
+  generateStatements()
+}
+
+// 监听服务器选择变化，重新生成语句
+watch([() => processForm.sourceServer, () => processForm.targetServer], () => {
+  generateStatements()
 })
+
+const serverList = ref([])
 
 const props = defineProps({
   data: {
     type: Object,
-    require: true
-  }
+    default: () => ({}),
+  },
 })
 
+// 组件挂载时初始化
 onMounted(() => {
-  getServerList().then(resp => {
-    serverList.value = resp.data
-  })
-  oggGenerateConfig.value.sourceServerId = props.data.id;
-  oggGenerateConfig.value.sourceServer = props.data;
+  apis
+    .getServerList()
+    .send()
+    .then(data => {
+      serverList.value = data
+      const ods = serverList.value.find(
+        t => t.serverName.toUpperCase() === 'ODS',
+      )
+      if (ods) {
+        processForm.targetServer = ods.id
+      }
+      const source = serverList.value.find(t => t.id === props.data.id)
+      if (source) {
+        processForm.sourceServer = source.id
+      }
+    })
+  generateStatements()
 })
 </script>
 
-<style scope lang="scss">
+<style scoped lang="scss">
 .create-process-container {
-  padding: 12px;
-  border: 1px solid var(--el-border-color);
-  gap: 8px;
+  background-color: var(--el-fill-color-blank);
 }
 
-.step-container, .container-main {
-  padding: 12px 20px;
-  margin-top: 2px;
-  border: 1px solid var(--el-border-color);
-  overflow-y: auto;
+.card-header {
+  font-size: 18px;
+  font-weight: bold;
 }
 
-.footer {
-  display: flex;
-  justify-items: center;
-  align-items: center;
+.config-section {
+  margin-top: 20px;
+  padding: 15px;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  background-color: #fafafa;
+  flex: 1;
+
+  h3 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    color: #303133;
+  }
+}
+
+.statements-section {
+  margin-top: 20px;
+
+  h3 {
+    margin-bottom: 16px;
+    color: #303133;
+  }
+}
+
+.action-buttons {
+  margin-top: 20px;
+  text-align: center;
 }
 </style>

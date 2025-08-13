@@ -536,37 +536,5 @@ $border: 1px solid var(--el-border-color);
   border: $border;
 }
 
-.tree-content {
-  border: $border;
-  background-color: var(--el-fill-color-blank);
-}
 
-.custom-tree-node {
-  width: 80%;
-  flex: 1;
-  margin-right: 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  .tree-content-opt {
-    visibility: hidden;
-  }
-
-  &:hover{
-    .tree-content-opt {
-      visibility: visible;
-    }
-  }
-}
-
-.el-tree--highlight-current .el-tree-node.is-current>.el-tree-node__content{
-  .tree-content-opt {
-    visibility: visible;
-  }
-}
-
-.tree-content-opt:hover {
-  color: var(--el-color-primary);
-}
 </style>

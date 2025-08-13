@@ -40,6 +40,14 @@ const option = {
     },
   },
   xAxis: { type: 'category' },
+  dataZoom: [
+    {
+      type: 'inside',   // 鼠标滚轮或触摸缩放
+      xAxisIndex: 0,
+      startValue: 0,
+      endValue: 10 - 1
+    }
+  ],
   yAxis: [
     {
       splitLine: {

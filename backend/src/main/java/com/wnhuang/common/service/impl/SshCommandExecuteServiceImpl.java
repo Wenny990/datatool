@@ -1,19 +1,17 @@
 package com.wnhuang.common.service.impl;
 
 import cn.hutool.core.convert.Convert;
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.jcraft.jsch.*;
 import com.wnhuang.common.domain.entity.MonitorServerInfo;
 import com.wnhuang.common.exception.BusinessException;
 import com.wnhuang.common.service.CommandExecuteService;
-import com.wnhuang.common.service.MonitorServerInfoService;
 import com.wnhuang.common.service.SessionPool;
-import com.wnhuang.common.utils.GroupLock;
+import com.wnhuang.common.websocket.handle.shell.JschSessionHolder;
+import com.wnhuang.common.websocket.handle.shell.SshSessionHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.util.Assert;
 
 import java.io.*;
 import java.util.function.Consumer;
@@ -126,7 +124,7 @@ public class SshCommandExecuteServiceImpl implements CommandExecuteService {
             log.info("服务器 {} 执行命令 {} 结果: {}", serverInfo.getServerName(), command, output.substring(0, output.length() > 2000 ? 2000 : output.length()));
             return output.toString();
         } catch (Exception e) {
-            log.error("远程执行命令异常，", e.getMessage());
+            log.error("远程执行命令异常，{0}", e.getMessage());
             throw new BusinessException("远程执行命令异常，" + e.getMessage());
         } finally {
             // 释放通道
@@ -138,7 +136,7 @@ public class SshCommandExecuteServiceImpl implements CommandExecuteService {
 
 
 
-    private Session getSession(MonitorServerInfo serverInfo) throws JSchException {
+    private Session getSession(MonitorServerInfo serverInfo)  {
         return sessionPool.getSession(serverInfo.getServerIp(), Convert.toInt(serverInfo.getServerPort(), 22), serverInfo.getServerUser(), serverInfo.getServerPass());
     }
 
@@ -223,5 +221,20 @@ public class SshCommandExecuteServiceImpl implements CommandExecuteService {
                 throw new BusinessException("包含危险指令：" + cmd);
             }
         }
+    }
+
+    @Override
+    public SshSessionHolder createShellSession(MonitorServerInfo serverInfo) {
+        Session session = getSession(serverInfo);
+        ChannelShell shellChannel = null;
+        SshSessionHolder jschSessionHolder = null;
+        try {
+            shellChannel = (ChannelShell) session.openChannel("shell");
+            jschSessionHolder = new JschSessionHolder(session, shellChannel,  serverInfo.getCharacterSet());
+        } catch (JSchException e) {
+            log.error("创建shell会话异常，{}", e.getMessage());
+            throw new RuntimeException(e);
+        }
+        return jschSessionHolder;
     }
 }

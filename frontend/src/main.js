@@ -1,5 +1,6 @@
 import './assets/index.scss'
 import 'splitpanes/dist/splitpanes.css'
+import '@fontsource/jetbrains-mono'
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'

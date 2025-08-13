@@ -63,6 +63,12 @@
             <optional>true</optional>
         </dependency>
 
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid-spring-boot-starter</artifactId>
+            <version>1.2.16</version>
+        </dependency>
+
         <!-- nacos-config -->
         <dependency>
             <groupId>com.alibaba.boot</groupId>
@@ -232,6 +238,10 @@
             <artifactId>deepseek-spring-boot-starter</artifactId>
             <version>1.4.3</version>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
 
     </dependencies>
 
@@ -249,24 +259,7 @@
                     </excludes>
                 </configuration>
             </plugin>
-            <!-- Docker Maven Plugin -->
-            <plugin>
-                <groupId>com.spotify</groupId>
-                <artifactId>docker-maven-plugin</artifactId>
-                <version>1.2.0</version>
-                <configuration>
-                    <imageName>dataTool/1.0</imageName>
-                    <dockerDirectory>src/main/docker</dockerDirectory>
-                    <resources>
-                        <resource>
-                            <targetPath>/</targetPath>
-                            <directory>${project.build.directory}</directory>
-                            <include>${project.build.finalName}.jar</include>
-                        </resource>
-                    </resources>
-                </configuration>
-            </plugin>
-            <!-- End of Docker Maven Plugin -->
+
         </plugins>
     </build>
 

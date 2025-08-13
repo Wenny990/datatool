@@ -126,7 +126,7 @@ export default defineComponent({
     const codeEditRef = ref()
 
     const fontSize = computed(() => {
-      let fontSize1 = 12
+      let fontSize1 = 13
       if(props.fontSize){
         fontSize1 = props.fontSize
       }
@@ -231,7 +231,7 @@ $fontSize: v-bind("fontSize + 'px'");
 }
 
 .cm-line {
-  font-family: Microsoft YaHei !important;
+  font-family: "JetBrains Mono", monospace,Microsoft YaHei !important;
 }
 
 .ͼ2 .cm-content, .ͼ4 .cm-line {

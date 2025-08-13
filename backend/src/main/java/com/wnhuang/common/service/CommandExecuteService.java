@@ -1,6 +1,7 @@
 package com.wnhuang.common.service;
 
 import com.wnhuang.common.domain.entity.MonitorServerInfo;
+import com.wnhuang.common.websocket.handle.shell.SshSessionHolder;
 
 import java.io.InputStream;
 import java.util.function.Consumer;
@@ -34,13 +35,9 @@ public interface CommandExecuteService {
     String executeCommand(MonitorServerInfo serverInfo, String command);
 
 
-
-
-
     Boolean uploadFile(MonitorServerInfo serverInfo, String path, String content);
 
     Boolean uploadFile(MonitorServerInfo serverInfo, String path, InputStream is);
-
 
     /**
      * 创建目录，如果不存在
@@ -50,4 +47,11 @@ public interface CommandExecuteService {
      * @return 是否成功
      */
     Boolean createDirIfNotExist(MonitorServerInfo serverInfo, String path);
+
+    /**
+     * 初始化ssh会话
+     * @param serverInfo 服务器
+     * @return
+     */
+    SshSessionHolder createShellSession(MonitorServerInfo serverInfo);
 }

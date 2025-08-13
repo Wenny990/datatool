@@ -25,7 +25,7 @@
             </el-select>
           </el-form-item>
           <el-form-item label="查询SQL" prop="querySql" v-if="ruleForm.type==1">
-            <code-editor v-model="ruleForm.querySql" type="sql" :disabled="false" height="240px"/>
+            <code-editor v-model="ruleForm.querySql" type="sql" :disabled="false" height="400px"/>
           </el-form-item>
           <el-form-item label="切分字段" v-if="ruleForm.type===0">
             <el-input v-model="ruleForm.splitPk" style="width: 300px" placeholder="多通道执行时用来切分的字段，一般使用主键"/>
