@@ -2,11 +2,15 @@ package com.wnhuang.common.controller;
 
 
 import com.wnhuang.common.domain.entity.RepositorySource;
+import com.wnhuang.common.domain.request.SqlParseBaseRequest;
 import com.wnhuang.common.domain.response.ApiResult;
 import com.wnhuang.common.domain.response.RepositoryBasePageResp;
 import com.wnhuang.common.service.RepositorySourceService;
+import com.wnhuang.common.service.SqlParseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
 
 /**
  * @author wnhuang
@@ -19,6 +23,9 @@ public class RepositorySourceController {
 
     @Autowired
     private RepositorySourceService service;
+
+    @Autowired
+    private SqlParseService sqlParseService;
 
     @PostMapping
     public ApiResult saveEntity(@RequestBody RepositorySource entity) {
@@ -47,8 +54,6 @@ public class RepositorySourceController {
     }
 
 
-
-
     @PostMapping("/execPageQuery")
     public ApiResult execSelectPageSql(@RequestBody RepositoryBasePageResp repoSelectPageRO) {
         return ApiResult.success(service.execPageQuery(repoSelectPageRO));
@@ -60,5 +65,8 @@ public class RepositorySourceController {
     }
 
 
-
+    @PostMapping("/parseSql")
+    public ApiResult parseSql(@RequestBody @Valid SqlParseBaseRequest request) {
+        return ApiResult.success(sqlParseService.parseSelectSql(request));
+    }
 }

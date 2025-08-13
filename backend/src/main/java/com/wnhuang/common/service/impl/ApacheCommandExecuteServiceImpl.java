@@ -6,15 +6,16 @@ import cn.hutool.core.util.StrUtil;
 import com.wnhuang.common.domain.entity.MonitorServerInfo;
 import com.wnhuang.common.exception.BusinessException;
 import com.wnhuang.common.service.CommandExecuteService;
-import com.wnhuang.common.service.MonitorServerInfoService;
+import com.wnhuang.common.websocket.handle.shell.ApacheSshdSessionHolder;
+import com.wnhuang.common.websocket.handle.shell.SshSessionHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.sshd.client.SshClient;
 import org.apache.sshd.client.channel.ChannelExec;
+import org.apache.sshd.client.channel.ChannelShell;
 import org.apache.sshd.client.channel.ClientChannelEvent;
 import org.apache.sshd.client.session.ClientSession;
 import org.apache.sshd.sftp.client.SftpClient;
 import org.apache.sshd.sftp.client.SftpClientFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.*;
 import java.util.EnumSet;
@@ -31,8 +32,6 @@ import java.util.function.Consumer;
 public class ApacheCommandExecuteServiceImpl implements CommandExecuteService {
 
     private SshSessionManager sessionManager;
-
-
 
     public ApacheCommandExecuteServiceImpl() {
         sessionManager = new SshSessionManager();
@@ -156,6 +155,18 @@ public class ApacheCommandExecuteServiceImpl implements CommandExecuteService {
     public Boolean createDirIfNotExist(MonitorServerInfo serverInfo, String path) {
         executeCommand(serverInfo, "mkdir -p " + path);
         return true;
+    }
+
+    @Override
+    public SshSessionHolder createShellSession(MonitorServerInfo serverInfo) {
+        try {
+            ClientSession session = sessionManager.getSession(serverInfo);
+            ChannelShell shellChannel = session.createShellChannel();
+            return new ApacheSshdSessionHolder(session, shellChannel, serverInfo.getCharacterSet());
+        } catch (IOException e) {
+            log.error("创建shell会话异常，{}", e.getMessage());
+            throw new RuntimeException(e);
+        }
     }
 
     class SshSessionManager {

@@ -5,9 +5,9 @@ import com.wnhuang.common.domain.response.ApiResult;
 import com.wnhuang.ogg.domain.entity.OggConfig;
 import com.wnhuang.ogg.domain.entity.OggGenerateConfig;
 import com.wnhuang.ogg.domain.entity.OggProcess;
+import com.wnhuang.ogg.domain.request.OggCommandListRequest;
 import com.wnhuang.ogg.domain.request.OggCommandRequest;
 import com.wnhuang.ogg.service.OggProcessService;
-import kotlin.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -87,5 +87,10 @@ public class OggProcessController {
     @PostMapping("/commandPreview")
     public ApiResult<String> commandPreview(@Valid @RequestBody OggCommandRequest request){
         return ApiResult.success(oggProcessService.commandPreview(request));
+    }
+
+    @PostMapping("/commandByOgg")
+    public ApiResult<String> commandByOgg(@Valid @RequestBody OggCommandListRequest request){
+        return ApiResult.success(oggProcessService.commandByOgg(request));
     }
 }

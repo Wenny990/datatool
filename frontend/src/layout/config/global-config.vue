@@ -7,7 +7,7 @@ import { useDark, useToggle } from '@vueuse/core'
 
 const globalSettingStore = useGlobalSettingStore()
 
-const { layout, timeOut, isShowConfig, defaultSize, baseURL } = storeToRefs(globalSettingStore)
+const { layout, timeOut, isShowConfig, defaultSize, baseURL, socketURL } = storeToRefs(globalSettingStore)
 
 const handleClearCache = () => {
   apis
@@ -59,6 +59,9 @@ const toggleDark = useToggle(isDark)
       </el-form-item>
       <el-form-item label="请求baseURL">
         <el-input v-model="baseURL"></el-input>
+      </el-form-item>
+      <el-form-item label="webSocketURL">
+        <el-input v-model="socketURL"></el-input>
       </el-form-item>
     </el-form>
   </el-drawer>

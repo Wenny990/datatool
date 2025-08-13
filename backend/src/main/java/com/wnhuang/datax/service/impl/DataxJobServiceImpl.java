@@ -116,6 +116,7 @@ public class DataxJobServiceImpl extends ServiceImpl<DataxJobMapper, DataxJob>
         entity.setReader(DesUtil.decrypt(entity.getReader()));
         entity.setWriter(DesUtil.decrypt(entity.getWriter()));
         entity.setSplitParams(DesUtil.decrypt(entity.getSplitParams()));
+        entity.setTransformer(DesUtil.decrypt(entity.getTransformer()));
         return super.saveOrUpdate(entity);
     }
 

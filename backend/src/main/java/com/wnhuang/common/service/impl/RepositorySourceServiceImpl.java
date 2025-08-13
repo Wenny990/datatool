@@ -4,7 +4,8 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.dynamic.datasource.DynamicRoutingDataSource;
 import com.baomidou.dynamic.datasource.creator.DataSourceProperty;
-import com.baomidou.dynamic.datasource.creator.hikaricp.HikariDataSourceCreator;
+import com.baomidou.dynamic.datasource.creator.druid.DruidConfig;
+import com.baomidou.dynamic.datasource.creator.druid.DruidDataSourceCreator;
 import com.baomidou.dynamic.datasource.toolkit.DynamicDataSourceContextHolder;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -14,6 +15,7 @@ import com.wnhuang.common.domain.entity.RepositorySource;
 import com.wnhuang.common.domain.response.RepositoryBasePageResp;
 import com.wnhuang.common.domain.response.TestConnectionResp;
 import com.wnhuang.common.exception.BusinessException;
+import com.wnhuang.common.exception.DatabaseException;
 import com.wnhuang.common.mapper.RepositorySourceMapper;
 import com.wnhuang.common.service.RepositoryConfigService;
 import com.wnhuang.common.service.RepositorySourceService;
@@ -46,7 +48,7 @@ public class RepositorySourceServiceImpl extends ServiceImpl<RepositorySourceMap
     DataSource dataSource;
 
     @Autowired
-    HikariDataSourceCreator dataSourceCreator;
+    DruidDataSourceCreator dataSourceCreator;
 
     @Autowired
     RepositoryConfigService repositoryConfigService;
@@ -157,12 +159,16 @@ public class RepositorySourceServiceImpl extends ServiceImpl<RepositorySourceMap
     @Override
     public TestConnectionResp testConnection(RepositorySource repositorySource) {
         DataSourceProperty dataSourceProperty = new DataSourceProperty();
+        DruidConfig druidConfig = new DruidConfig();
+        druidConfig.setMaxWait(3000);
+        druidConfig.setBreakAfterAcquireFailure(true); // 获取连接失败后标记数据源为不可用
+        druidConfig.setConnectionErrorRetryAttempts(0); // 连接错误后重试次数
+        dataSourceProperty.setDruid(druidConfig);
         BeanUtils.copyProperties(repositorySource, dataSourceProperty);
         ResultSet resultSet = null;
         PreparedStatement statement = null;
         Connection connection = null;
-        RepositoryConfig repositoryConfig = repositoryConfigService.getById(repositorySource.getDataProviderType());
-        Assert.hasText(repositoryConfig.getVersionSql(), "版本查询sql为空");
+
         try {
             log.info("测试数据源，开始连接数据源：{}", dataSourceProperty);
             DataSource ds = dataSourceCreator.createDataSource(dataSourceProperty);
@@ -184,9 +190,9 @@ public class RepositorySourceServiceImpl extends ServiceImpl<RepositorySourceMap
                     .databaseVersion(sb.toString())
                     .driverVersion(driverName + " " + driverVersion)
                     .build();
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
             log.error("连接数据库失败，请检查配置信息", ex);
-            throw new BusinessException(ex.getMessage());
+            throw new BusinessException(ex.getMessage() + ": " + ex.getCause().getMessage());
         } finally {
             try {
                 if (resultSet != null) resultSet.close();
@@ -212,8 +218,15 @@ public class RepositorySourceServiceImpl extends ServiceImpl<RepositorySourceMap
                 DynamicDataSourceContextHolder.push("master");
                 RepositorySource repositorySource = this.getById(key);
                 Assert.notNull(repositorySource, "根据主键{" + key + "}获取数据库配置信息失败，请检查！");
-                DataSource dataSource = createDataSource(repositorySource);
-                dynamicRoutingDataSource.addDataSource(key, dataSource);
+                DataSource dataSource;
+                try {
+                    dataSource = createDataSource(repositorySource);
+                    dynamicRoutingDataSource.addDataSource(key, dataSource);
+                } catch (Exception e) {
+                    log.error("添加数据源失败, key: {}", key, e);
+                    throw new DatabaseException("创建数据源失败: " + e.getMessage()  + e.getCause().getMessage());
+                }
+
             }
         }
         DynamicDataSourceContextHolder.push(key);
@@ -316,7 +329,7 @@ public class RepositorySourceServiceImpl extends ServiceImpl<RepositorySourceMap
     /**
      * 获取数据库配置列表
      *
-     * @return
+     * @return 数据库配置列表
      */
     @Override
     public List<RepositoryConfig> getRepositoryConfigList() {

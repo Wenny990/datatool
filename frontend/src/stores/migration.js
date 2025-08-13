@@ -74,7 +74,7 @@ export const useMigrationStore = defineStore(
         t =>
           t.sourceId === sourceState.currentRepoObj?.dataProviderType &&
           t.targetId === targetState.currentRepoObj?.dataProviderType &&
-          t.sourceType === dataType,
+          t.sourceType.toLowerCase() === dataType.toLowerCase(),
       )
       if (!mapperData) {
         ElMessage.warning('未找到映射关系：' + dataType)

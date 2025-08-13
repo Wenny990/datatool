@@ -5,7 +5,8 @@
         <el-step title="基本配置">1</el-step>
         <el-step title="输入输出配置">2</el-step>
         <el-step title="字段匹配">3</el-step>
-        <el-step title="预览">4</el-step>
+        <el-step title="转换">4</el-step>
+        <el-step title="预览">5</el-step>
       </el-steps>
       <div class="flex-auto">
         <div
@@ -110,17 +111,20 @@
         <div v-if="active === 3" class="h100">
           <mapper :job="job"></mapper>
         </div>
-        <div v-show="active === 4" class="h100">
+        <div v-if="active === 4" class="step1 flex-auto flex-center h100">
+          <Transformer ref="transformerRef" :transformer="job.transformer" />
+        </div>
+        <div v-show="active === 5" class="h100">
           <code-editor type="json" v-model="job.jobParams" :disabled="false" />
         </div>
       </div>
       <div>
         <el-button :disabled="active === 1" @click="last">上一步</el-button>
-        <el-button v-show="active < 4" type="primary" @click="next"
+        <el-button v-show="active < 5" type="primary" @click="next"
           >下一步</el-button
         >
         <slot>
-          <el-button v-show="active === 4" type="success" @click="save"
+          <el-button v-show="active === 5" type="success" @click="save"
             >保存</el-button
           >
         </slot>
@@ -137,6 +141,7 @@ import Mapper from './mapper.vue'
 import { ElMessage } from 'element-plus'
 import { useDataXStore } from '@/stores/datax'
 import apis from '@/service/apis'
+import Transformer from '@/views/datax/job-build/transformer.vue'
 
 const rules = {
   jobName: [{ required: true, message: '任务名称不能为空' }],
@@ -187,6 +192,7 @@ const job = ref({
     postSql: '',
     tableSchema: '',
   },
+  transformer: [],
   jobParams: '',
   jvmParams: '-Xms1G -Xmx8G',
 })
@@ -264,10 +270,14 @@ const buildJson = () => {
     )
   }
   writer.parameter.postSql = job.value.writer.postSql.split(';')
+
+  const transformer = job.value.transformer
+
   const content = []
   content.push({
     reader,
     writer,
+    transformer
   })
   dataxJob.content = content
   return { job: dataxJob }
@@ -287,7 +297,7 @@ const next = () => {
         active.value++
       }
     })
-  } else if (active.value === 3) {
+  } else if (active.value === 4) {
     job.value.jobParams = JSON.stringify(buildJson(), null, 4)
     active.value++
   } else {
@@ -331,11 +341,12 @@ onMounted(() => {
       repoList.value = data
     })
   if (props.data.id) {
-    apis
-      .getDataxJob(props.data.id)
-      .then(data => {
-        job.value = data
-      })
+    apis.getDataxJob(props.data.id).then(data => {
+      job.value = data
+      if (!job.value.transformer) {
+        job.value.transformer = []
+      }
+    })
   } else {
     job.value.groupId = props.data.groupId
   }

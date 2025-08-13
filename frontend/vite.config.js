@@ -35,7 +35,7 @@ const viteConfig = defineConfig(mode => {
       host: '0.0.0.0',
       proxy: {
         '/api': {
-          target: 'http://localhost:8110',
+          target: 'http://10.108.152.169:8110',
           // target: 'http://202.168.1.21:8110',
           ws: true,
           changeOrigin: true,

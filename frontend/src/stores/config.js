@@ -10,7 +10,8 @@ export const useGlobalSettingStore = defineStore(
     const isShowConfig = ref(false)
     const isShowChat = ref(false)
     const baseURL = ref('/')
-    return { layout, defaultSize, timeOut, isShowConfig, baseURL }
+    const socketURL = ref('/shell')
+    return { layout, defaultSize, timeOut, isShowConfig, baseURL, socketURL }
   },
   {
     persist: true,

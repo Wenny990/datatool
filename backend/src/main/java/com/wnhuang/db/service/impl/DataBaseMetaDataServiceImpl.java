@@ -15,6 +15,8 @@ import com.wnhuang.db.service.DataBaseMetaDataService;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
@@ -34,6 +36,7 @@ import java.util.function.Function;
  */
 @Service
 @Slf4j
+@CacheConfig(cacheNames = "databaseMetadata")
 public class DataBaseMetaDataServiceImpl implements DataBaseMetaDataService {
 
     @Autowired
@@ -99,6 +102,7 @@ public class DataBaseMetaDataServiceImpl implements DataBaseMetaDataService {
      * @param repositoryId 数据库配置表主键
      */
     @Override
+    @Cacheable(key = "'schema_' + #repositoryId")
     public List<SchemaInfo> getSchemaList(Integer repositoryId) {
         try {
             RepositorySource repositorySource = repositorySourceService.getById(repositoryId);
@@ -139,6 +143,7 @@ public class DataBaseMetaDataServiceImpl implements DataBaseMetaDataService {
      * @param dbSchemaMetaRequest 数据库配置
      */
     @Override
+    @Cacheable(key = "'table_' + #dbSchemaMetaRequest.repositoryId + '_' + #dbSchemaMetaRequest.schemaName")
     public List<TableInfo> getTableList(DbSchemaMetaRequest dbSchemaMetaRequest) {
         try {
             Integer repositoryId = dbSchemaMetaRequest.getRepositoryId();
@@ -191,6 +196,7 @@ public class DataBaseMetaDataServiceImpl implements DataBaseMetaDataService {
      * @return
      */
     @Override
+    @Cacheable(key = "'column_' + #dbTableMetaRequest.repositoryId + '_' + #dbTableMetaRequest.schemaName + '_' + #dbTableMetaRequest.tableName")
     public List<TableColumnInfo> getTableColumnList(DbTableMetaRequest dbTableMetaRequest) {
         try {
             Integer repositoryId = dbTableMetaRequest.getRepositoryId();
@@ -213,6 +219,7 @@ public class DataBaseMetaDataServiceImpl implements DataBaseMetaDataService {
      * @return
      */
     @Override
+    @Cacheable(key = "'index_' + #dbTableMetaRequest.repositoryId + '_' + #dbTableMetaRequest.schemaName + '_' + #dbTableMetaRequest.tableName")
     public List<TableIndex> getTableIndexList(DbTableMetaRequest dbTableMetaRequest) {
         try {
             Integer repositoryId = dbTableMetaRequest.getRepositoryId();

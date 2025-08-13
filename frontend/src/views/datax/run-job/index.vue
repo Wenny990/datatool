@@ -1,5 +1,5 @@
 <template>
-  <div class="mb20 h100 flex-center border pd6" >
+  <div class="mb20 h100 flex-center border pd12" >
     <div class="mb12 flex ">
       <el-button type="primary" @click="fetchKeysData">刷新</el-button>
       <el-button

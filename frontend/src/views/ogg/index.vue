@@ -31,9 +31,9 @@ const { componentList, currComponent} = storeToRefs(processStore);
 <script>
 export default {
   components: {
-    // CreateProcess: defineAsyncComponent(() => import('./create-process/index.vue')),
+    CreateProcess: defineAsyncComponent(() => import('./create-process/index.vue')),
     ProcessInfo: defineAsyncComponent(() => import('./process-info/index.vue')),
-    // ServerShell: defineAsyncComponent(() => import('./server-shell/index.vue')),
+    ServerShell: defineAsyncComponent(() => import('./server-shell/index.vue')),
     OggMonitor: defineAsyncComponent(() => import('./monitor/index.vue')),
     ServerMonitor: defineAsyncComponent(() => import('./server-monitor/index.vue')),
     CommandPreview: defineAsyncComponent(() => import('./command-preview/index.vue')),

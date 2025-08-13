@@ -82,8 +82,11 @@ function matchAndRemove(arr1, arr2) {
 
 const mapper = async () => {
   if (job.value.reader.type == 1) {
-    const data = await apis.parseSql(job.value.reader.querySql)
-    const selectItems = JSON.parse(data.selectItems)
+    const data = await apis.parseSql({
+      repoId: job.value.reader.repoId,
+      sql: job.value.reader.querySql,
+    })
+    const selectItems = data.selectList
     rColumns.value = selectItems.map(t => t.alias)
   } else {
     rColumns.value = [...job.value.reader.columns]

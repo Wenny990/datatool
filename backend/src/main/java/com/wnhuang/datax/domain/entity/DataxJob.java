@@ -49,6 +49,11 @@ public class DataxJob extends BaseTableField implements Serializable  {
     private String writer;
 
     /**
+     * 转换对象
+     */
+    private String transformer;
+
+    /**
      * 任务参数
      */
     private String jobParams;

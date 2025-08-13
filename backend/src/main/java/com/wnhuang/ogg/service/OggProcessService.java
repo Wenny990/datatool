@@ -3,10 +3,7 @@ package com.wnhuang.ogg.service;
 import com.wnhuang.ogg.domain.entity.OggConfig;
 import com.wnhuang.ogg.domain.entity.OggGenerateConfig;
 import com.wnhuang.ogg.domain.entity.OggProcess;
-import com.wnhuang.ogg.domain.request.OggCommandRequest;
-import com.wnhuang.ogg.domain.request.OggDefFileBaseRequest;
-import com.wnhuang.ogg.domain.request.OggDefFileSaveRequest;
-import com.wnhuang.ogg.domain.request.OggDefFileUploadRequest;
+import com.wnhuang.ogg.domain.request.*;
 import com.wnhuang.ogg.domain.response.OggDefFileResp;
 import com.wnhuang.ogg.domain.response.OggMonitorVo;
 
@@ -153,4 +150,11 @@ public interface OggProcessService  {
      * @return
      */
     String commandPreview(OggCommandRequest request);
+
+    /**
+     * ogg控制台下执行命令
+     * @param request
+     * @return
+     */
+    String commandByOgg(OggCommandListRequest request);
 }

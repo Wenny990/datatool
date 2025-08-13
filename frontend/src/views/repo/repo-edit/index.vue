@@ -16,7 +16,7 @@
           <el-select
             v-model="current_row.dataProviderType"
             placeholder="请选择连接类型"
-            @change="generateJdbcUrl"
+            @change="onDataProviderTypeChange"
           >
             <el-option
               v-for="item in repoDriveConfig"
@@ -217,6 +217,16 @@ function replaceVariables(str, data) {
 }
 
 // 自动计算JDBC连接字符串
+const onDataProviderTypeChange = () => {
+  const config = repoDriveConfig.value.find(
+    t => t.id === current_row.value.dataProviderType,
+  )
+  if (config) {
+    current_row.value.port = config.dbPort // 类型改变时重置端口
+  }
+  generateJdbcUrl()
+}
+// 自动计算JDBC连接字符串
 const generateJdbcUrl = () => {
   const config = repoDriveConfig.value.find(
     t => t.id === current_row.value.dataProviderType,
@@ -224,13 +234,19 @@ const generateJdbcUrl = () => {
   if (!config) {
     return
   }
-  current_row.value.port = config.dbPort
+
+  // 只在端口未设置时使用默认端口
+  if (!current_row.value.port) {
+    current_row.value.port = config.dbPort
+  }
+
   current_row.value.driverClassName = config.dbDriver
   current_row.value.dataSourceName = config.name
   let jdbcUrl = replaceVariables(config.dbUrl, current_row.value)
   // 将JDBC连接字符串设置为文本框的值
   current_row.value.url = jdbcUrl
 }
+
 
 const parseTemplate = () => {
   const config = repoDriveConfig.value.find(

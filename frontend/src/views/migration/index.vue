@@ -66,8 +66,8 @@ const handleColumnDbClick = item => {
         <el-button>刷新</el-button>
         <el-button @click="handleCheckAll(true)">全选</el-button>
         <el-button @click="handleCheckAll(false)">取消全选</el-button>
-        <el-button @click="mappingDialog = true">映射 </el-button>
-        <el-button type="success" @click="handleExecute">执行</el-button>
+        <el-button @click="mappingDialog = true" plain type="primary">映射 </el-button>
+        <el-button type="success" @click="handleExecute" plain>执行</el-button>
       </el-button-group>
 
       <el-select v-model="transferModel" style="width: 100px" size="small">
