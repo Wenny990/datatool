@@ -87,6 +87,12 @@ public class DataxJob extends BaseTableField implements Serializable  {
     @TableField(exist = false)
     private String logPath;
 
+    /**
+     * 分段执行时，当前段的where条件
+     */
+    @TableField(exist = false)
+    private String currWhereStr;
+
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 

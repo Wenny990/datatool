@@ -88,8 +88,10 @@ export default {
   // 后台执行任务
   executeDataxJob: id => postRequest('/dataxJob' + '/execute/' + id),
   // 后台执行区间任务
-  executeDataxJobByRange: id =>
-    postRequest('/dataxJob' + '/executeByRange/' + id),
+  executeDataxJobByRange: id => postRequest('/dataxJob' + '/executeByRange/' + id),
+  // 后台同步执行区间任务
+  executeDataxJobBySyncRange: id => postRequest('/dataxJob' + '/executeByRangeSync/' + id),
+
   // 获取全部任务日志
   getAllExecuteLogKeys: () => getRequest('/dataxJob' + '/execute'),
   // 获取单个任务执行日志

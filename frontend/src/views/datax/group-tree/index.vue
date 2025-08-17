@@ -213,7 +213,8 @@
       </div>
       <template #footer>
         <div>
-          <el-button @click="onBackupExecute" type="primary">执行</el-button>
+          <el-button @click="onBackupExecute(false)" type="success" plain>执行</el-button>
+          <el-button @click="onBackupExecute(true)" type="primary" plain v-show="currentJob.splitParams.type !== 'none'">同步执行</el-button>
           <el-button @click="execDialog = false">取消</el-button>
         </div>
       </template>
@@ -454,7 +455,7 @@ const onBatchExecJob = async node => {
   ElMessage.success(node.childNodes.length + '任务提交成功!')
 }
 
-const onBackupExecute = () => {
+const onBackupExecute = (isSync) => {
   if (currentJob.value.splitParams.type === 'none') {
     apis
       .saveDataxJob(currentJob.value)
@@ -479,16 +480,30 @@ const onBackupExecute = () => {
         .saveDataxJob(currentJob.value)
         .send()
         .then(() => {
-          return apis.executeDataxJobByRange(currentJob.value.id).send()
+          if (isSync) {
+            return apis.executeDataxJobBySyncRange(currentJob.value.id).send()
+          }else {
+            return apis.executeDataxJobByRange(currentJob.value.id).send()
+          }
         })
         .then(uuid => {
           execDialog.value = false
+          if (isSync) {
+            for (let i = 0; i < uuid.length; i++) {
+              runningJobList.value.unshift({
+                uuid: uuid[i],
+                jobName: currentJob.value.jobName,
+                status: -1,
+              })
+            }
+          }else{
+            runningJobList.value.unshift({
+              uuid: uuid,
+              jobName: currentJob.value.jobName,
+              status: -1,
+            })
+          }
           ElMessage.success('任务提交成功，返回任务标识：' + uuid)
-          runningJobList.value.unshift({
-            uuid: uuid,
-            jobName: currentJob.value.jobName,
-            status: -1,
-          })
         })
     })
   }

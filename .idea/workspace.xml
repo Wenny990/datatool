@@ -4,66 +4,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c420727f-6c37-41e3-94ea-c4163eaade64" name="更改" comment="">
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/common/domain/entity/SelectSqlObject.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/common/domain/entity/sql/JoinInfo.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/common/domain/entity/sql/SelectItem.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/common/domain/request/SqlParseBaseRequest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/common/exception/DatabaseException.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/common/service/SqlParseService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/common/service/impl/DruidSqlParseServiceImpl.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/common/websocket/config/WebSocketRegisterConfig.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/common/websocket/handle/MyWebSocketHandle.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/common/websocket/handle/shell/ApacheSshdSessionHolder.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/common/websocket/handle/shell/CommandOutputCallback.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/common/websocket/handle/shell/JschSessionHolder.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/common/websocket/handle/shell/SshSessionHolder.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/common/websocket/handle/shell/WebSocketShellTool.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/ogg/domain/request/OggCommandListRequest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/resources/banner.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/views/datax/job-build/transformer.vue" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/views/ogg/create-process2/index.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+    <list default="true" id="c420727f-6c37-41e3-94ea-c4163eaade64" name="更改" comment="完善shell功能，新增添加进程功能">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backend/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/common/controller/RepositorySourceController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/common/controller/RepositorySourceController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/common/exception/GlobalExceptionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/common/exception/GlobalExceptionHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/common/service/CommandExecuteService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/common/service/CommandExecuteService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/common/intecepter/WebLogAspect.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/common/intecepter/WebLogAspect.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/common/service/SessionPool.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/common/service/SessionPool.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/common/service/impl/ApacheCommandExecuteServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/common/service/impl/ApacheCommandExecuteServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/common/service/impl/RepositorySourceServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/common/service/impl/RepositorySourceServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/common/service/impl/SshCommandExecuteServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/common/service/impl/SshCommandExecuteServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/datax/controller/DataxJobController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/datax/controller/DataxJobController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/datax/domain/entity/DataxJob.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/datax/domain/entity/DataxJob.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/datax/domain/entity/DataxJobRunLog.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/datax/domain/entity/DataxJobRunLog.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/datax/service/DataxJobService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/datax/service/DataxJobService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/datax/service/impl/DataxJobServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/datax/service/impl/DataxJobServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/db/service/impl/DataBaseMetaDataServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/db/service/impl/DataBaseMetaDataServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/ogg/controller/OggProcessController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/ogg/controller/OggProcessController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/ogg/service/OggProcessService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/ogg/service/OggProcessService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/ogg/service/impl/OggProcessServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/ogg/service/impl/OggProcessServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/App.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/App.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/components/codeEditor/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/codeEditor/index.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/layout/config/global-config.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/layout/config/global-config.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/main.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/service/apis.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/service/apis.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/stores/config.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/stores/config.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/stores/migration.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/stores/migration.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/views/datax/group-tree/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/views/datax/group-tree/index.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/views/datax/job-build/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/views/datax/job-build/index.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/views/datax/job-build/mapper.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/views/datax/job-build/mapper.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/views/datax/job-build/reader.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/views/datax/job-build/reader.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/views/datax/run-job/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/views/datax/run-job/index.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/views/migration/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/views/migration/index.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/views/ogg/create-process/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/views/ogg/create-process2/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/views/ogg/create-process/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/views/ogg/create-process/index.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/views/ogg/create-process/ogg-build.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/views/ogg/create-process2/ogg-build.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/views/ogg/create-process/ogg-config.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/views/ogg/create-process2/ogg-config.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/views/ogg/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/views/ogg/index.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/views/ogg/monitor/total-chart.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/views/ogg/monitor/total-chart.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/views/ogg/process-info/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/views/ogg/process-info/index.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/views/ogg/server-shell/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/views/ogg/server-shell/index.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/views/ogg/server-tree/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/views/ogg/server-tree/index.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/views/repo/repo-edit/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/views/repo/repo-edit/index.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/vite.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/vite.config.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/db/aspect/DataSourceAspect.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/wnhuang/db/aspect/DataSourceAspect.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -171,10 +121,10 @@
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="D:\tool\IdeaProjects\datatool\backend\src\main\resources\static" />
+      <recent name="D:\tool\IdeaProjects\datatool\backend\src\main\resources\static\assets" />
       <recent name="D:\tool\IdeaProjects\datatool\backend\src\main\resources" />
       <recent name="D:\tool\IdeaProjects\datatool\frontend" />
       <recent name="D:\tool\IdeaProjects\datatool" />
-      <recent name="D:\tool\IdeaProjects\datatool\src" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="D:\tool\IdeaProjects\datatool\backend\lib" />
@@ -323,12 +273,27 @@
       <workItem from="1754740311937" duration="434000" />
       <workItem from="1754740756395" duration="14400000" />
       <workItem from="1754797504236" duration="13542000" />
-      <workItem from="1754897632764" duration="27915000" />
+      <workItem from="1754897632764" duration="28439000" />
+      <workItem from="1755159798954" duration="3000" />
+      <workItem from="1755236326240" duration="21744000" />
     </task>
+    <task id="LOCAL-00001" summary="完善shell功能，新增添加进程功能">
+      <option name="closed" value="true" />
+      <created>1755050949939</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1755050949939</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="完善shell功能，新增添加进程功能" />
+    <option name="LAST_COMMIT_MESSAGE" value="完善shell功能，新增添加进程功能" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -340,7 +305,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/backend/src/main/java/com/wnhuang/ogg/service/impl/OggProcessServiceImpl.java</url>
-          <line>758</line>
+          <line>748</line>
           <option name="timeStamp" value="32" />
         </line-breakpoint>
       </breakpoints>

@@ -22,6 +22,10 @@ public class SessionPool {
 
     private static final int SESSION_TIMEOUT = 120 * 60 * 1000; // 会话空闲超时时间，5分钟
 
+    // 添加一个用于存储host级别锁的map
+    private final ConcurrentHashMap<String, Object> hostLocks = new ConcurrentHashMap<>();
+
+
     // 用于存储和管理会话
     private final ConcurrentHashMap<String, SessionWrapper> sessionPool = new ConcurrentHashMap<>();
     private final Timer sessionCleanupTimer = new Timer(true); // 定时任务清理器
@@ -48,32 +52,35 @@ public class SessionPool {
 
     // 获取或创建新的会话
     public Session getSession(String host, int port, String username, String password) {
-        SessionWrapper sessionWrapper = sessionPool.get(host);
-        if (null != sessionWrapper) {
-            if (sessionWrapper.isConnected()) {
-                sessionWrapper.updateLastUsed(); // 更新最后使用时间
-                return sessionWrapper.session;
-            } else {
-                sessionPool.remove(host);
+        // 为特定host获取锁对象
+        Object hostLock = hostLocks.computeIfAbsent(host, k -> new Object());
+
+        synchronized (hostLock) {
+            SessionWrapper sessionWrapper = sessionPool.get(host);
+            if (null != sessionWrapper) {
+                if (sessionWrapper.isConnected()) {
+                    sessionWrapper.updateLastUsed(); // 更新最后使用时间
+                    return sessionWrapper.session;
+                } else {
+                    sessionPool.remove(host);
+                }
+            }
+
+            log.info("没有空闲会话，创建新会话，{}", host);
+            // 没有空闲会话或会话已达到通道上限，创建新会话
+            try {
+                Session session = new JSch().getSession(username, host, port);
+                session.setPassword(password);
+                session.setConfig("StrictHostKeyChecking", "no");
+                session.connect(30000); // 连接超时时间
+                SessionWrapper newSessionWrapper = new SessionWrapper(session);
+                sessionPool.put(host, newSessionWrapper);
+                return newSessionWrapper.session;
+            } catch (JSchException e) {
+                log.error("创建会话异常，{}", e.getMessage());
+                throw new BusinessException("创建会话异常，" + e.getMessage());
             }
         }
-
-        log.info("没有空闲会话，创建新会话，{}", host);
-        // 没有空闲会话或会话已达到通道上限，创建新会话
-        try {
-            Session session = new JSch().getSession(username, host, port);
-            session.setPassword(password);
-            session.setConfig("StrictHostKeyChecking", "no");
-            session.connect(30000); // 连接超时时间
-            SessionWrapper newSessionWrapper = new SessionWrapper(session);
-            sessionPool.put(host, newSessionWrapper);
-            return newSessionWrapper.session;
-        } catch (JSchException e) {
-            log.error("创建会话异常，{}", e.getMessage());
-            throw new BusinessException("创建会话异常，" + e.getMessage());
-        }
-
-
     }
 
     // 创建命令执行通道

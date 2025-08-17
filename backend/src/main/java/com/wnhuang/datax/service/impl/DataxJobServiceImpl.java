@@ -1,9 +1,9 @@
 package com.wnhuang.datax.service.impl;
 
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.date.TimeInterval;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
@@ -31,11 +31,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -62,6 +60,8 @@ public class DataxJobServiceImpl extends ServiceImpl<DataxJobMapper, DataxJob>
     @Qualifier("dataxExecutorService")
     private ExecutorService dataxExecutorService;
 
+    private final Map<String, DataxJobRunLog> jobRunLogMap = new HashMap<>();
+    private final Map<String, StringBuilder> jobRunLogContentMap = new HashMap<>();
     private final static String CACHE_NAME = "datax:jobRunLog:";
     private final static String CACHE_MAP_NAME = "datax:jobRunLog:map";
     private final static String CACHE_CONTENT_NAME = "datax:jobRunLogContent:";
@@ -150,7 +150,7 @@ public class DataxJobServiceImpl extends ServiceImpl<DataxJobMapper, DataxJob>
     }
 
     /**
-     * 切分执行任务，分段执行，一个任务根据时间或者值进行切分，返回第一个任务的uuid
+     * 切分执行任务，串行执行，一个任务根据时间或者值进行切分，返回第一个任务的uuid
      *
      * @param id 任务id
      * @return 第一个任务标识
@@ -160,12 +160,50 @@ public class DataxJobServiceImpl extends ServiceImpl<DataxJobMapper, DataxJob>
         DataxJob dataxJob = this.getById(id);
         Assert.notNull(dataxJob, "根据传入的jobId{" + id + "}，未获取到对应的job，请检查！");
         List<DataxJob> dataxJobs = setSplit(dataxJob);
-        String uuid = executeDataxJobList(dataxJobs, 0);
-        return uuid;
+        return executeDataxJobList(dataxJobs, 0);
     }
 
     /**
-     * 后台执行job任务
+     * 切分执行任务，同步执行，一个任务根据时间或者值进行切分
+     *
+     * @param id 任务id
+     * @return 第一个任务标识
+     */
+    @Override
+    public List<String> executeDataxJobByRangeAsync(Integer id) {
+        DataxJob dataxJob = this.getById(id);
+        Assert.notNull(dataxJob, "根据传入的jobId{" + id + "}，未获取到对应的job，请检查！");
+        List<DataxJob> dataxJobs = setSplit(dataxJob);
+        return executeDataxJobList(dataxJobs);
+    }
+
+
+    /**
+     * 后台并行执行job任务
+     *
+     * @param list  job列表
+     * @return 返回所有任务执行标识uuid
+     */
+    private List<String> executeDataxJobList(List<DataxJob> list) {
+        Assert.notEmpty(list, "传入的job列表不能为空！");
+        List<String> result = new ArrayList<>();
+
+        for (int i = 0; i < list.size(); i++) {
+            DataxJob dataxJob = uploadDataxJob(list.get(i));
+            DataxJobRunLog dataxJobRunLog = executeDataxJob(dataxJob, (resultCode) -> {
+
+            });
+            dataxJobRunLog.setCurrWhereStr(dataxJob.getCurrWhereStr());
+            dataxJobRunLog.setTotal(list.size());
+            dataxJobRunLog.setCurrent(i + 1);
+            result.add(dataxJobRunLog.getUuid());
+        }
+        ListUtil.reverse(result);
+        return result;
+    }
+
+    /**
+     * 后台串行执行job任务
      *
      * @param list  job列表
      * @param index 当前任务序号
@@ -173,8 +211,34 @@ public class DataxJobServiceImpl extends ServiceImpl<DataxJobMapper, DataxJob>
      */
     private String executeDataxJobList(List<DataxJob> list, Integer index) {
         Assert.notEmpty(list, "传入的job列表不能为空！");
-        String uuid = UUID.randomUUID().toString();
         DataxJob dataxJob = uploadDataxJob(list.get(index));
+
+        // 使用数组来持有引用，解决Lambda表达式中的变量引用问题
+        DataxJobRunLog[] jobRunLogArray = new DataxJobRunLog[1];
+
+        Consumer<Integer> completeFunc = (resultCode) -> {
+            //如果执行成功并且还有剩余任务，则继续执行
+            if (resultCode.equals(0)) {
+                if (index < list.size() - 1) {
+                    jobRunLogArray[0].setHasNext(true);
+                    jobRunLogArray[0].setNextUuid(executeDataxJobList(list, index + 1));
+                } else {
+                    jobRunLogArray[0].setHasNext(false);
+                }
+            }
+        };
+
+        DataxJobRunLog dataxJobRunLog = executeDataxJob(dataxJob, completeFunc);
+        dataxJobRunLog.setTotal(list.size());
+        dataxJobRunLog.setCurrent(index + 1);
+        dataxJobRunLog.setCurrWhereStr(dataxJob.getCurrWhereStr());
+        // 将引用保存到数组中，以便在回调中使用
+        jobRunLogArray[0] = dataxJobRunLog;
+        return dataxJobRunLog.getUuid();
+    }
+
+    private DataxJobRunLog executeDataxJob(DataxJob dataxJob, Consumer<Integer> completeFunc) {
+        String uuid = UUID.randomUUID().toString();
         dataxJob.setUuid(uuid);
         Integer serverId = dataxJob.getServerId();
         MonitorServerInfo serverInfo = serverInfoService.getById(serverId);
@@ -191,14 +255,12 @@ public class DataxJobServiceImpl extends ServiceImpl<DataxJobMapper, DataxJob>
                 .serverId(serverId)
                 .status(JobRunStatusEnum.NOT_START.getStatus())
                 .startTime(new Date())
-                .total(list.size())
-                .current(index + 1)
                 .build();
-        redisTemplate.opsForHash().put(CACHE_MAP_NAME, uuid, JSONUtil.toJsonStr(jobRunLog));
 
-        //记录当前时间
-        TimeInterval timer = DateUtil.timer();
         StringBuilder logContent = new StringBuilder();
+        jobRunLogMap.put(uuid, jobRunLog);
+        jobRunLogContentMap.put(uuid, logContent);
+
         dataxExecutorService.execute(() -> {
             commandExecuteService.executeCommand(serverInfo, shellCommand, (lineContent) -> {
                 if (StrUtil.isBlank(lineContent)) {
@@ -223,33 +285,30 @@ public class DataxJobServiceImpl extends ServiceImpl<DataxJobMapper, DataxJob>
                     Long totalRecords = Convert.toLong(totalRecordsString);
                     jobRunLog.setTotalRecords(totalRecords);
                 }
-                //超过1秒则更新一次缓存
-                if (timer.intervalSecond() >= 3L) {
-                    redisTemplate.opsForHash().put(CACHE_MAP_NAME, uuid, JSONUtil.toJsonStr(jobRunLog));
-                    redisTemplate.opsForValue().set(CACHE_CONTENT_NAME + uuid, logContent.toString());
-                    timer.restart();
+                //匹配速度
+                String speedString = RegexUtil.match("(\\d+) records/s", lineContent);
+                if (null != speedString) {
+                    Long speed = Convert.toLong(speedString);
+                    jobRunLog.setSpeed(speed);
                 }
+
             }, (result) -> {
                 //result 0表示成功，其它都是失败
                 jobRunLog.setStatus(result == 0 ? JobRunStatusEnum.SUCCESS.getStatus() : JobRunStatusEnum.FAIL.getStatus());
                 jobRunLog.setResult(result);
                 jobRunLog.setEndTime(new Date());
-                //如果执行成功并且还有剩余任务，则继续执行
-                if (result.equals(0)) {
-                    if (index < list.size() - 1) {
-                        jobRunLog.setHasNext(true);
-                        jobRunLog.setNextUuid(executeDataxJobList(list, index + 1));
-                    } else {
-                        jobRunLog.setHasNext(false);
-                    }
-                }
+
+
+                completeFunc.accept(result);
                 redisTemplate.opsForHash().put(CACHE_MAP_NAME, uuid, JSONUtil.toJsonStr(jobRunLog));
                 redisTemplate.opsForValue().set(CACHE_CONTENT_NAME + uuid, logContent.toString());
+                jobRunLogMap.remove(uuid);
+                jobRunLogContentMap.remove(uuid);
+
             });
         });
-        return uuid;
+        return jobRunLog;
     }
-
 
     /**
      * 设置分段执行
@@ -266,22 +325,25 @@ public class DataxJobServiceImpl extends ServiceImpl<DataxJobMapper, DataxJob>
         String replaceStr = splitParams.getStr("replaceStr");
 
         List<List<String>> lists = null;
-        if (type.equals("range")) {
-            Long start = splitParams.getLong("startValue");
-            Long end = splitParams.getLong("endValue");
-            Long step = splitParams.getLong("step");
-            lists = SplitUtil.splitRange(start, end, step);
+        switch (type) {
+            case "range":
+                Long start = splitParams.getLong("startValue");
+                Long end = splitParams.getLong("endValue");
+                Long step = splitParams.getLong("step");
+                lists = SplitUtil.splitRange(start, end, step);
+                break;
+            case "date":
+                Date startDate = splitParams.getDate("startDate");
+                Date endDate = splitParams.getDate("endDate");
+                Integer stepMonth = splitParams.getInt("step");
+                lists = SplitUtil.splitDate(startDate, endDate, stepMonth);
+                break;
+            default:
+                throw new BusinessException("不支持的分段类型");
         }
-        if (type.equals("date")) {
-            Date startDate = splitParams.getDate("startDate");
-            Date endDate = splitParams.getDate("endDate");
-            Integer step = splitParams.getInt("step");
-            lists = SplitUtil.splitDate(startDate, endDate, step);
-        }
-        if (lists != null) {
-            for (List<String> list : lists) {
-                result.add(copyAndSetJobReaderWhere(dataxJob, replaceStr, list));
-            }
+
+        for (List<String> list : lists) {
+            result.add(copyAndSetJobReaderWhere(dataxJob, replaceStr, list));
         }
         return result;
     }
@@ -318,6 +380,7 @@ public class DataxJobServiceImpl extends ServiceImpl<DataxJobMapper, DataxJob>
         where = where + replaceStr;
         parameter.set("where", where);
         curr.setJobParams(JSONUtil.toJsonStr(obj));
+        curr.setCurrWhereStr(where);
         return curr;
     }
 
@@ -325,14 +388,14 @@ public class DataxJobServiceImpl extends ServiceImpl<DataxJobMapper, DataxJob>
      * 结束任务
      *
      * @param uuid 任务标识
-     * @return
+     * @return 结束成功标识
      */
     @Override
     public Boolean killDataxJob(String uuid) {
         DataxJobRunLog execLog = getJobRunLog(uuid);
         String jobPath = execLog.getJobPath();
         Integer serverId = execLog.getServerId();
-        String command = "pkill -f -9  \"" + jobPath + "\"";
+        String command = "pkill -f -9  \"" + execLog.getUuid() + "\"";
         commandExecuteService.executeCommand(monitorServerInfoServiceImpl.getById(serverId), command);
         return true;
     }
@@ -345,9 +408,14 @@ public class DataxJobServiceImpl extends ServiceImpl<DataxJobMapper, DataxJob>
      */
     @Override
     public DataxJobRunLog getJobRunLog(String uuid) {
+        DataxJobRunLog jobRunLog;
+        if (jobRunLogMap.containsKey(uuid)) {
+            jobRunLog = jobRunLogMap.get(uuid);
+            return jobRunLog;
+        }
         String s = (String) redisTemplate.opsForHash().get(CACHE_MAP_NAME, uuid);
-        DataxJobRunLog runLog = JSONUtil.toBean(s, DataxJobRunLog.class);
-        return runLog;
+        jobRunLog = JSONUtil.toBean(s, DataxJobRunLog.class);
+        return jobRunLog;
     }
 
     /**
@@ -358,23 +426,47 @@ public class DataxJobServiceImpl extends ServiceImpl<DataxJobMapper, DataxJob>
      */
     @Override
     public DataxJobRunLog getJobRunLogContent(String uuid) {
-        String s = (String) redisTemplate.opsForHash().get(CACHE_MAP_NAME, uuid);
-        DataxJobRunLog runLog = JSONUtil.toBean(s, DataxJobRunLog.class);
-        if (runLog != null) {
-            String content = (String) redisTemplate.opsForValue().get(CACHE_CONTENT_NAME + uuid);
-            runLog.setLogContent(content);
+        DataxJobRunLog jobRunLog;
+        if (jobRunLogMap.containsKey(uuid)) {
+            jobRunLog = jobRunLogMap.get(uuid);
+            jobRunLog.setLogContent(jobRunLogContentMap.get(uuid).toString());
+            return jobRunLog;
         }
-        return runLog;
+        String s = (String) redisTemplate.opsForHash().get(CACHE_MAP_NAME, uuid);
+        jobRunLog = JSONUtil.toBean(s, DataxJobRunLog.class);
+        if (jobRunLog != null) {
+            String content = (String) redisTemplate.opsForValue().get(CACHE_CONTENT_NAME + uuid);
+            jobRunLog.setLogContent(content);
+        }
+        return jobRunLog;
     }
 
     @Override
     public List<DataxJobRunLog> getAllDataxJobRunLog() {
+        List<DataxJobRunLog> result = new ArrayList<>();
+
+        // 先添加正在运行的任务（内存中的数据）
+        result.addAll(jobRunLogMap.values());
+
+        // 再添加已完成的任务（Redis中的数据）
         List<Object> values = redisTemplate.opsForHash().values(CACHE_MAP_NAME);
-        List<DataxJobRunLog> collect = values.stream()
+        List<DataxJobRunLog> redisLogs = values.stream()
                 .map(t -> JSONUtil.toBean((String) t, DataxJobRunLog.class))
                 .sorted(Comparator.comparing(DataxJobRunLog::getStartTime).reversed())
                 .collect(Collectors.toList());
-        return collect;
+
+        result.addAll(redisLogs);
+
+
+        // 对所有任务按开始时间，精确到秒倒序排序，相同时间的再按照current降序
+        result.sort(
+                Comparator.comparing((DataxJobRunLog log) -> {
+                            // 秒
+                            return DateUtil.format(log.getStartTime(), "yyyy-MM-dd HH:mm:ss");
+                        })
+                        .thenComparingInt(DataxJobRunLog::getCurrent  ).reversed()
+        );
+        return result;
     }
 
     @Override

@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/dataxJob")
@@ -47,6 +46,11 @@ public class DataxJobController {
     @PostMapping("/executeByRange/{id}")
     public ApiResult executeByRange(@PathVariable Integer id) {
         return ApiResult.success(service.executeDataxJobByRange(id));
+    }
+
+    @PostMapping("/executeByRangeSync/{id}")
+    public ApiResult executeByRangeSync(@PathVariable Integer id) {
+        return ApiResult.success(service.executeDataxJobByRangeAsync(id));
     }
 
     @GetMapping("/execute/{uuid}")

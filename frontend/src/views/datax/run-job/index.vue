@@ -36,11 +36,21 @@
                 ? ''
                 : '(' + row.current + '/' + row.total + ')')
             }}
+            <el-tooltip
+              :content="row.currWhereStr"
+            >
+              <el-icon class="ml-2" v-show="row.total && row.total > 1 && row.currWhereStr "><ChatLineRound /></el-icon>
+            </el-tooltip>
           </template>
         </el-table-column>
         <el-table-column
           property="totalRecords"
           label="记录数"
+          width="100"
+        ></el-table-column>
+        <el-table-column
+          property="speed"
+          label="速度(每秒)"
           width="100"
         ></el-table-column>
         <el-table-column

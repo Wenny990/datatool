@@ -1,9 +1,7 @@
 package com.wnhuang.datax.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-
 import com.wnhuang.common.domain.entity.MonitorServerInfo;
-import com.wnhuang.common.domain.response.ApiResult;
 import com.wnhuang.datax.domain.entity.DataxJob;
 import com.wnhuang.datax.domain.entity.DataxJobRunLog;
 
@@ -40,7 +38,21 @@ public interface DataxJobService extends IService<DataxJob> {
     String executeDataxJob(Integer id);
 
 
+    /**
+     * 切分执行任务，串行执行，一个任务根据时间或者值进行切分
+     *
+     * @param id 任务id
+     * @return 第一个任务标识
+     */
     String executeDataxJobByRange(Integer id);
+
+    /**
+     * 切分执行任务，同步执行，一个任务根据时间或者值进行切分
+     *
+     * @param id 任务id
+     * @return 所有任务标识
+     */
+    List<String> executeDataxJobByRangeAsync(Integer id);
 
     /**
      * 结束任务

@@ -54,6 +54,13 @@
         </el-descriptions-item>
         <el-descriptions-item>
           <template #label>
+            <div class="cell-item">速度</div>
+          </template>
+          {{ jobLog.speed  }}
+        </el-descriptions-item>
+
+        <el-descriptions-item :span="2">
+          <template #label>
             <div class="cell-item">进度</div>
           </template>
 

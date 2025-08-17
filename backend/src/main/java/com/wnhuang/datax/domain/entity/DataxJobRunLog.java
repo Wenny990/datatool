@@ -28,6 +28,7 @@ public class DataxJobRunLog {
     private String logPath;
     private Integer serverId;
     private Date startTime;
+    private String currWhereStr;
 
     /**
      * 任务状态，-1: 未开始,0: 执行中 1: 执行成功 2: 执行失败
@@ -42,6 +43,8 @@ public class DataxJobRunLog {
      * 当前是第几个任务
      */
     private Integer current;
+
+    private Long speed;
 
     /**
      * 百分比
