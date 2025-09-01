@@ -48,6 +48,9 @@ const { data: columnList, send: getColumnsSend } = useRequest(
 )
 
 function isUpperCaseContainsNumberOrInt(str) {
+  if(!str || typeof str !== 'string'){
+    return false;
+  }
   const upperCaseStr = str.toUpperCase()
   return upperCaseStr.includes('NUMBER') || upperCaseStr.includes('INT')
 }
@@ -60,7 +63,7 @@ const onTableChange = val => {
   }).then(respData => {
     data.columnList = data.columns = respData.map(t => t.columnName)
     const primaryKeyList = respData
-      .filter(t => t.isPrimaryKey && isUpperCaseContainsNumberOrInt(t.datatype))
+      .filter(t => t.isPrimaryKey && isUpperCaseContainsNumberOrInt(t.dataType))
       .map(t => t.columnName)
     if (primaryKeyList.length >= 1) {
       data.splitPk = primaryKeyList[0]

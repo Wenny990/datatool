@@ -26,6 +26,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -96,6 +97,35 @@ public class DataBaseMetaDataServiceImpl implements DataBaseMetaDataService {
         }
     }
 
+
+    /**
+     * 获取数据库列表
+     *
+     * @param repositoryId 数据库配置表主键
+     */
+    @Cacheable(key = "'dbsize_' + #repositoryId")
+    @Override
+    public String getDbSize(Integer repositoryId) {
+        try {
+            repositorySourceService.resetRepository();
+            RepositorySource repositorySource = repositorySourceService.getById(repositoryId);
+            RepositoryConfig repositoryConfig = repositoryConfigService.getById(repositorySource.getDataProviderType());
+            repositorySourceService.changeDataSource(String.valueOf(repositoryId));
+            List<Map<String, Object>> dbSize =
+                    dataBaseMetaDataMapper.getDbSize(repositoryConfig.getDbSizeSql());
+            Object firstValue = (dbSize != null && !dbSize.isEmpty() && dbSize.get(0) != null && !dbSize.get(0).isEmpty())
+                    ? dbSize.get(0).values().iterator().next()
+                    : null;
+            if (firstValue != null) {
+                return firstValue.toString();
+            }
+            return null;
+        } finally {
+            repositorySourceService.resetRepository();
+        }
+    }
+
+
     /**
      * 获取数据库列表
      *
@@ -105,6 +135,7 @@ public class DataBaseMetaDataServiceImpl implements DataBaseMetaDataService {
     @Cacheable(key = "'schema_' + #repositoryId")
     public List<SchemaInfo> getSchemaList(Integer repositoryId) {
         try {
+            repositorySourceService.resetRepository();
             RepositorySource repositorySource = repositorySourceService.getById(repositoryId);
             RepositoryConfig repositoryConfig = repositoryConfigService.getById(repositorySource.getDataProviderType());
             repositorySourceService.changeDataSource(String.valueOf(repositoryId));
@@ -146,6 +177,7 @@ public class DataBaseMetaDataServiceImpl implements DataBaseMetaDataService {
     @Cacheable(key = "'table_' + #dbSchemaMetaRequest.repositoryId + '_' + #dbSchemaMetaRequest.schemaName")
     public List<TableInfo> getTableList(DbSchemaMetaRequest dbSchemaMetaRequest) {
         try {
+            repositorySourceService.resetRepository();
             Integer repositoryId = dbSchemaMetaRequest.getRepositoryId();
             RepositorySource repositorySource = repositorySourceService.getById(repositoryId);
             RepositoryConfig repositoryConfig = repositoryConfigService.getById(repositorySource.getDataProviderType());
@@ -199,6 +231,7 @@ public class DataBaseMetaDataServiceImpl implements DataBaseMetaDataService {
     @Cacheable(key = "'column_' + #dbTableMetaRequest.repositoryId + '_' + #dbTableMetaRequest.schemaName + '_' + #dbTableMetaRequest.tableName")
     public List<TableColumnInfo> getTableColumnList(DbTableMetaRequest dbTableMetaRequest) {
         try {
+            repositorySourceService.resetRepository();
             Integer repositoryId = dbTableMetaRequest.getRepositoryId();
             RepositorySource repositorySource = repositorySourceService.getById(repositoryId);
             RepositoryConfig repositoryConfig = repositoryConfigService.getById(repositorySource.getDataProviderType());
@@ -222,6 +255,7 @@ public class DataBaseMetaDataServiceImpl implements DataBaseMetaDataService {
     @Cacheable(key = "'index_' + #dbTableMetaRequest.repositoryId + '_' + #dbTableMetaRequest.schemaName + '_' + #dbTableMetaRequest.tableName")
     public List<TableIndex> getTableIndexList(DbTableMetaRequest dbTableMetaRequest) {
         try {
+            repositorySourceService.resetRepository();
             Integer repositoryId = dbTableMetaRequest.getRepositoryId();
             RepositorySource repositorySource = repositorySourceService.getById(repositoryId);
             RepositoryConfig repositoryConfig = repositoryConfigService.getById(repositorySource.getDataProviderType());

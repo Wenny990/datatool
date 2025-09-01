@@ -265,7 +265,6 @@ const batchImportByStr = () => {
   ElMessage.success(message)
 }
 
-
 const parseImportStr = () => {
   function matchOggStr(lineStr) {
     const table = lineStr.trim()
@@ -336,9 +335,24 @@ const { send: getColumnsSend } = useRequest(data => apis.getColumns(data), {
   immediate: false,
 })
 
+const { data: repoConfigList } = useRequest(apis.getRepoConfig,)
+
 const onSourceRepoChange = val => {
   config.value.source.schemaName = ''
   config.value.source.tableName = ''
+  config.value.source.identifierBefore = ''
+  config.value.source.identifierAfter = ''
+  const currRepo = repoList.value.find(t => t.id === val)
+  if (currRepo) {
+    const repoConfig = repoConfigList.value.find(
+      t => t.id === currRepo.dataProviderType,
+    )
+    if(repoConfig){
+      config.value.source.identifierBefore = repoConfig.identifierBefore
+      config.value.source.identifierAfter = repoConfig.identifierAfter
+    }
+  }
+
   getSchemasSend({ repositoryId: val }).then(data => {
     state.sourceSchemaList = data
   })
@@ -347,6 +361,19 @@ const onSourceRepoChange = val => {
 const onTargetRepoChange = val => {
   config.value.target.schemaName = ''
   config.value.target.tableName = ''
+  config.value.target.identifierBefore = ''
+  config.value.target.identifierAfter = ''
+  const currRepo = repoList.value.find(t => t.id === val)
+  if (currRepo) {
+    const repoConfig = repoConfigList.value.find(
+      t => t.id === currRepo.dataProviderType,
+    )
+    if(repoConfig){
+      config.value.target.identifierBefore = repoConfig.identifierBefore
+      config.value.target.identifierAfter = repoConfig.identifierAfter
+    }
+  }
+
   getSchemasSend({ repositoryId: val }).then(data => {
     state.targetSchemaList = data
   })
@@ -376,10 +403,11 @@ const buildJson = job => {
     reader.parameter.connection[0].querySql = [job.reader.querySql]
   } else {
     reader.parameter.connection[0].table = [
-      job.reader.schemaName + '.' + job.reader.tableName,
+      job.reader.identifierBefore + job.reader.schemaName + job.reader.identifierAfter
+      + '.' + job.reader.identifierBefore +job.reader.tableName + job.reader.identifierAfter ,
     ]
     reader.parameter.splitPk = job.reader.splitPk
-    reader.parameter.column = job.reader.columns
+    reader.parameter.column = job.reader.columns.map(t => job.reader.identifierBefore + t + job.reader.identifierAfter)
   }
 
   const writer = {
@@ -391,17 +419,18 @@ const buildJson = job => {
       connection: [
         {
           jdbcUrl: targetRepository.url,
-          table: [job.writer.schemaName + '.' + job.writer.tableName],
+          table: [job.writer.identifierBefore + job.writer.schemaName + job.writer.identifierAfter
+          + '.' + job.writer.identifierBefore + job.writer.tableName + job.writer.identifierAfter],
         },
       ],
     },
   }
-  writer.parameter.column = job.writer.columns
+  writer.parameter.column = job.writer.columns.map(t => job.writer.identifierBefore + t + job.writer.identifierAfter)
 
   writer.parameter.preSql = job.writer.preSql.split(';')
   if (job.writer.truncateTable) {
     writer.parameter.preSql.push(
-      'truncate table ' + job.writer.schemaName + '.' + job.writer.tableName,
+      'truncate table ' + job.writer.identifierBefore + job.writer.schemaName + job.writer.identifierAfter+ '.' + job.writer.identifierBefore + job.writer.tableName + job.writer.identifierAfter,
     )
   }
 
@@ -469,11 +498,16 @@ const buildJob = () => {
         job.reader.repoId = config.value.source.repoId
         job.reader.schemaName = config.value.source.schemaName
         job.reader.tableName = sourceTable
+        job.reader.identifierBefore = config.value.source.identifierBefore
+        job.reader.identifierAfter = config.value.source.identifierAfter
+
 
         job.writer.repoId = config.value.target.repoId
         job.writer.schemaName = config.value.target.schemaName
         job.writer.tableName = targetTable
         job.writer.truncateTable = config.value.target.truncateTable
+        job.writer.identifierBefore = config.value.target.identifierBefore
+        job.writer.identifierAfter = config.value.target.identifierAfter
 
         Promise.all([
           getColumnsSend({

@@ -35,8 +35,8 @@ const viteConfig = defineConfig(mode => {
       host: '0.0.0.0',
       proxy: {
         '/api': {
-          target: 'http://10.108.152.169:8110',
-          // target: 'http://202.168.1.21:8110',
+          // target: 'http://10.108.152.169:8110',
+          target: 'http://10.9.101.164:8110',
           ws: true,
           changeOrigin: true,
           rewrite: path => path.replace(/^\/api/, ''),

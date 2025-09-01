@@ -37,7 +37,7 @@ export default defineComponent({
       if(props?.name && props?.name?.includes('./')){
         return new URL(`${props.name}`, import.meta.url).href;
       }else{
-        return props?.name;
+        return props?.name.replace("ele-","");
       }
 
 		});

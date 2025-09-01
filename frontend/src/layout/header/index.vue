@@ -5,6 +5,7 @@ import { useRoute } from 'vue-router'
 import { useGlobalSettingStore } from '@/stores/config'
 import GlobalConfig from '@/layout/config/global-config.vue'
 import GlobalChat from '@/layout/config/global-chat.vue'
+import { useDark } from '@vueuse/core'
 
 const route = useRoute()
 
@@ -32,6 +33,8 @@ watch(
 )
 
 const globalSettingStore = useGlobalSettingStore()
+
+const isDark = useDark()
 </script>
 
 <template>

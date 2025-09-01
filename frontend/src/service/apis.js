@@ -238,4 +238,73 @@ export default {
 
   //清理服务端全部缓存
   clearAllCache: () => getRequest('/cache' + '/clearAll'),
+
+  /**
+   * API接口模块相关接口
+   */
+  // 获取API配置分页列表
+  getApiConfigPage: data => getRequest('/apiConfig/page', data),
+  // 创建API配置
+  createApiConfig: data => postRequest('/apiConfig/create', data),
+  // 更新API配置
+  updateApiConfig: data => postRequest('/apiConfig/update', data),
+  // 删除API配置
+  deleteApiConfig: id => deleteRequest('/apiConfig/delete/' + id),
+  // 获取API配置详情
+  getApiConfigDetail: id => getRequest('/apiConfig/detail/' + id),
+  // 根据编码获取API配置
+  getApiConfigByCode: apiCode => getRequest('/apiConfig/code/' + apiCode),
+  // 检查API编码是否存在
+  checkApiCodeExists: (apiCode, excludeId) => getRequest('/apiConfig/check-code', { apiCode, excludeId }),
+  // 更新API配置状态
+  updateApiConfigStatus: (id, status) => postRequest('/apiConfig/status/' + id +"/" + status),
+  // 获取启用的API配置列表
+  getEnabledApiConfigs: () => getRequest('/apiConfig/list/enabled'),
+
+  // 调用API接口
+  callApi: data => postRequest('/api/execute/call', data),
+  // 通过编码调用API接口
+  callApiByCode: (apiCode, params) => postRequest('/api/execute/call/' + apiCode, params),
+  // 获取API数据（不包装结果）
+  getApiData: (apiCode, params) => postRequest('/api/execute/data/' + apiCode, params),
+
+  // 获取API执行日志分页列表
+  getApiExecuteLogPage: data => getRequest('/api/log/page', data),
+  // 获取API执行日志详情
+  getApiExecuteLogDetail: id => getRequest('/api/log/detail/' + id),
+  // 删除API执行日志
+  deleteApiExecuteLog: id => deleteRequest('/api/log/delete/' + id),
+  // 批量删除API执行日志
+  batchDeleteApiExecuteLogs: ids => deleteRequest('/api/log/batch-delete', ids),
+  // 清理过期API执行日志
+  cleanExpiredApiLogs: () => deleteRequest('/api/log/clean-expired'),
+
+  /**
+   * 数据库监控相关接口
+   */
+  // 获取所有数据库概要信息
+  getAllDatabaseSummaries: () => getRequest('/dbMonitor/summary/all'),
+  // 获取指定数据库概要信息
+  getDatabaseSummary: repositoryId => getRequest('/dbMonitor/summary/' + repositoryId),
+  // 测试数据库连接
+  testDatabaseConnection: repositoryId => getRequest('/dbMonitor/test-connection/' + repositoryId),
+  // 获取数据库状态信息
+  getDatabaseStatus: repositoryId => getRequest('/dbMonitor/status/' + repositoryId),
+  
+  // 获取Schema列表
+  getSchemaList: repositoryId => getRequest('/dbMeta/schema', { repositoryId }),
+  // 获取表列表
+  getTableList: params => getRequest('/dbMeta/table', params),
+  // 获取表字段列表
+  getTableColumnList: params => getRequest('/dbMeta/column', params),
+  // 获取表索引列表
+  getTableIndexList: params => getRequest('/dbMeta/index', params),
+  // 获取表行数统计
+  getTableRowCount: (repositoryId, schemaName, tableName) => 
+    getRequest('/dbMonitor/table/count', { repositoryId, schemaName, tableName }),
+  
+  // 获取表数据
+  getTableData: params => postRequest('/dbMonitor/table/data', params),
+
+
 }

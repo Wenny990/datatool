@@ -25,20 +25,50 @@
       :line-warpping="true"
       :extensions="extensions"
       :disabled="disabled"
+
     />
   </div>
 </template>
 
-<script>
+<script setup>
 import { Codemirror } from 'vue-codemirror'
 import { sql } from '@codemirror/lang-sql'
 import { json } from '@codemirror/lang-json'
+import { javascript } from '@codemirror/lang-javascript'
+import { xml } from '@codemirror/lang-xml'
 import { dracula } from '@uiw/codemirror-theme-dracula'
 import { eclipse } from '@uiw/codemirror-theme-eclipse'
 import commonFunction from '@/utils/commonFunction'
 import { EditorView, ViewPlugin } from '@codemirror/view'
-import { computed, toRefs } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useDark, useFullscreen } from '@vueuse/core'
+
+const props = defineProps({
+  modelValue: String,
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+  type: {
+    type: String,
+  },
+  height: {
+    type: String,
+    default: () => '100%',
+  },
+  isBottom: {
+    type: Boolean,
+    default: false,
+  },
+  placeholder: {
+    type: String,
+  },
+  fontSize: {
+    type: Number,
+  }
+})
+
+const emit = defineEmits(['update:modelValue', 'input'])
 
 function isElementScrolledToBottom(el, wiggleRoom = 10) {
   return el.scrollHeight - el.scrollTop <= el.clientHeight + wiggleRoom
@@ -50,25 +80,12 @@ const scrollViewPlugin = ViewPlugin.fromClass(
     programmaticScroll = false
 
     update(update) {
-      // console.info(1)
-
       if (update.docChanged) {
         requestAnimationFrame(() => {
           // Scroll to the bottom of the console.
           const el = update.view.scrollDOM
           el.scrollTop = el.scrollHeight
         })
-        // for (let tr of update.transactions) {
-        //   for (let e of tr.effects) {
-        //     console.info(3)
-        //     if (e.is(myCustomEffect) && this.scrolledToBottom) {
-        //       // Add flag that this was a programmatic scroll.
-        //       this.programmaticScroll = true;
-        //       // Delay by an animation frame to ensure DOM is ready
-        //
-        //     }
-        //   }
-        // }
       }
     }
   },
@@ -86,90 +103,55 @@ const scrollViewPlugin = ViewPlugin.fromClass(
   },
 )
 
-export default defineComponent({
-  name: 'codeEditor',
-  components: {
-    Codemirror,
+const { copyText } = commonFunction()
+const lang = { json: json(), sql: sql() ,javascript: javascript(), xml: xml()}
+
+const isDark = useDark()
+
+const extensions = computed(() => {
+  const result = []
+  if (props.type in lang) {
+    result.push(lang[props.type])
+  }else {
+    console.error('不支持的语言类型' + props.type)
+  }
+
+  result.push(EditorView.lineWrapping)
+  // 始终显示最后一行
+  if (props.isBottom) {
+    result.push(scrollViewPlugin)
+  }
+
+  isDark.value ? result.push(dracula) : result.push(eclipse)
+  return result
+})
+
+const codes = computed({
+  get: function () {
+    return props.modelValue ?? ''
   },
-  setup(props, ctx) {
-    const { copyText } = commonFunction()
-    const lang = { json: json(), sql: sql() }
-
-    const isDark = useDark()
-
-    const extensions = computed(() => {
-      const result = []
-      if (props.type) {
-        result.push(lang[props.type])
-      }
-
-      result.push(EditorView.lineWrapping)
-      // 始终显示最后一行
-      if (props.isBottom) {
-        result.push(scrollViewPlugin)
-      }
-
-      isDark.value ? result.push(dracula) : result.push(eclipse)
-      return result
-    })
-
-    const codes = computed({
-      get: function () {
-        return props.modelValue ?? ''
-      },
-      set: function (val) {
-        //侦听到setter()事件，将值传递回父级组件
-        ctx.emit('update:modelValue', val)
-      },
-    })
-
-    const codeEditRef = ref()
-
-    const fontSize = computed(() => {
-      let fontSize1 = 13
-      if(props.fontSize){
-        fontSize1 = props.fontSize
-      }
-      return fontSize1
-    })
-
-    const { toggle } = useFullscreen(codeEditRef)
-    return {
-      ...toRefs(props),
-      extensions,
-      copyText,
-      codes,
-      codeEditRef,
-      toggle,
-      fontSize,
-
-    }
-  },
-  props: {
-    modelValue: String,
-    disabled: {
-      type: Boolean,
-      default: false,
-    },
-    type: {
-      type: String,
-    },
-    height: {
-      type: String,
-      default: () => '100%',
-    },
-    isBottom: {
-      type: Boolean,
-      default: false,
-    },
-    placeholder: {
-      type: String,
-    },
-    fontSize: {
-      type: Number,
-    }
+  set: function (val) {
+    //传递值回父级组件
+    emit('update:modelValue', val)
   },
 })
+
+const codeEditRef = ref()
+
+const fontSize = computed(() => {
+  let fontSize1 = 13
+  if(props.fontSize){
+    fontSize1 = props.fontSize
+  }
+  return fontSize1
+})
+
+// 使用watch监听 modelValue 变化
+watch(() => props.modelValue, (newValue) => {
+  emit('input', newValue)
+}, { immediate: false })
+
+const { toggle } = useFullscreen(codeEditRef)
 </script>
 
 <style lang="scss">

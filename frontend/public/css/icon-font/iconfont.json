@@ -6,6 +6,48 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "23184247",
+      "name": "字段管理",
+      "font_class": "ziduanguanli",
+      "unicode": "e7b3",
+      "unicode_decimal": 59315
+    },
+    {
+      "icon_id": "23185392",
+      "name": "时间",
+      "font_class": "shijian",
+      "unicode": "e7b7",
+      "unicode_decimal": 59319
+    },
+    {
+      "icon_id": "23238186",
+      "name": "整数",
+      "font_class": "zhengshu",
+      "unicode": "e7cf",
+      "unicode_decimal": 59343
+    },
+    {
+      "icon_id": "23240215",
+      "name": "小数",
+      "font_class": "xiaoshu",
+      "unicode": "e7d0",
+      "unicode_decimal": 59344
+    },
+    {
+      "icon_id": "23241514",
+      "name": "字符串",
+      "font_class": "zifuchuan",
+      "unicode": "e7d1",
+      "unicode_decimal": 59345
+    },
+    {
+      "icon_id": "23243358",
+      "name": "布尔",
+      "font_class": "buer",
+      "unicode": "e7d3",
+      "unicode_decimal": 59347
+    },
+    {
       "icon_id": "20104545",
       "name": "主机管理",
       "font_class": "zhujiguanli",

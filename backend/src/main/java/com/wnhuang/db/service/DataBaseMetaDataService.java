@@ -6,6 +6,7 @@ import com.wnhuang.db.domain.entity.TableIndex;
 import com.wnhuang.db.domain.entity.TableInfo;
 import com.wnhuang.db.domain.request.DbSchemaMetaRequest;
 import com.wnhuang.db.domain.request.DbTableMetaRequest;
+import org.springframework.cache.annotation.Cacheable;
 
 import java.util.List;
 
@@ -15,6 +16,9 @@ import java.util.List;
  * @date 2024/11/17 15:34
  */
 public interface DataBaseMetaDataService {
+
+    @Cacheable(key = "'dbsize_' + #repositoryId")
+    String getDbSize(Integer repositoryId);
 
     /**
      * 获取数据库schema列表

@@ -97,6 +97,7 @@
                 ref="readerRef"
                 :reader="job.reader"
                 :repo-list="repoList"
+                :repo-config-list="repoConfigList"
               />
             </div>
             <div class="flex-auto">
@@ -104,6 +105,7 @@
                 ref="writerRef"
                 :writer="job.writer"
                 :repo-list="repoList"
+                :repo-config-list="repoConfigList"
               />
             </div>
           </div>
@@ -142,6 +144,7 @@ import { ElMessage } from 'element-plus'
 import { useDataXStore } from '@/stores/datax'
 import apis from '@/service/apis'
 import Transformer from '@/views/datax/job-build/transformer.vue'
+import { useRequest } from 'alova/client'
 
 const rules = {
   jobName: [{ required: true, message: '任务名称不能为空' }],
@@ -151,6 +154,7 @@ const active = ref(1)
 
 const serverList = ref([])
 const repoList = ref([])
+const repoConfigList = ref([])
 
 const job = ref({
   jobName: '',
@@ -235,10 +239,10 @@ const buildJson = () => {
     reader.parameter.connection[0].querySql = [job.value.reader.querySql]
   } else {
     reader.parameter.connection[0].table = [
-      job.value.reader.schemaName + '.' + job.value.reader.tableName,
+      job.value.reader.identifierBefore + job.value.reader.schemaName + job.value.reader.identifierAfter + '.' +  job.value.reader.identifierBefore + job.value.reader.tableName + job.value.reader.identifierAfter,
     ]
     reader.parameter.splitPk = job.value.reader.splitPk
-    reader.parameter.column = job.value.mapperList.map(item => item.left)
+    reader.parameter.column = job.value.mapperList.map(item =>  job.value.reader.identifierBefore +  item.left + job.value.reader.identifierAfter)
     reader.parameter.where = job.value.reader.where
     reader.parameter.fetchSize = job.value.reader.fetchSize
   }
@@ -253,20 +257,20 @@ const buildJson = () => {
         {
           jdbcUrl: targetRepository.url,
           table: [
-            job.value.writer.schemaName + '.' + job.value.writer.tableName,
+            job.value.writer.identifierBefore  + job.value.writer.schemaName + job.value.writer.identifierAfter + '.' + job.value.writer.identifierBefore  + job.value.writer.tableName + job.value.writer.identifierAfter,
           ],
         },
       ],
     },
   }
-  writer.parameter.column = job.value.mapperList.map(item => item.right)
+  writer.parameter.column = job.value.mapperList.map(item =>  job.value.writer.identifierBefore + item.right + job.value.writer.identifierAfter)
   writer.parameter.preSql = job.value.writer.preSql.split(';')
   if (job.value.writer.truncateTable) {
     writer.parameter.preSql.push(
       'truncate table ' +
-        job.value.writer.schemaName +
+      job.value.writer.identifierBefore  + job.value.writer.schemaName + job.value.writer.identifierAfter +
         '.' +
-        job.value.writer.tableName,
+      job.value.writer.identifierBefore  + job.value.writer.tableName + job.value.writer.identifierAfter ,
     )
   }
   writer.parameter.postSql = job.value.writer.postSql.split(';')
@@ -340,6 +344,9 @@ onMounted(() => {
     .then(data => {
       repoList.value = data
     })
+  apis.getRepoConfig().send().then(data => {
+    repoConfigList.value = data
+  })
   if (props.data.id) {
     apis.getDataxJob(props.data.id).then(data => {
       job.value = data

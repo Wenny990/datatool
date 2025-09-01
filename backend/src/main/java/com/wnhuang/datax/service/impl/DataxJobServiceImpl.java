@@ -502,13 +502,11 @@ public class DataxJobServiceImpl extends ServiceImpl<DataxJobMapper, DataxJob>
             sb.append("\"");
         }
 
-        sb.append(" --json ").append("\"")
+        sb.append(" --json ").append("'")
                 .append(
                         dataxJob.getJobParams()
-                                .replace("\\", "\\\\")
-                                .replace("\"", "\\\"")
                 )
-                .append("\"");
+                .append("'");
         return sb.toString();
     }
 }

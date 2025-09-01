@@ -11,8 +11,10 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.26.0",
+    "@codemirror/lang-javascript": "^6.2.4",
     "@codemirror/lang-json": "^6.0.1",
     "@codemirror/lang-sql": "^6.8.0",
+    "@codemirror/lang-xml": "^6.1.0",
     "@codemirror/view": "^6.34.1",
     "@element-plus/icons-vue": "^2.3.1",
     "@fontsource/jetbrains-mono": "^5.2.6",

@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author wnhuang
@@ -27,4 +28,7 @@ public interface DataBaseMetaDataMapper {
 
     @Select("${querySql}")
     List<TableIndex> getTableIndexList(String querySql);
+
+    @Select("${querySql}")
+    List<Map<String,Object>> getDbSize(String querySql);
 }

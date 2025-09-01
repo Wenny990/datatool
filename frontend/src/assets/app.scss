@@ -217,6 +217,11 @@ body,
   margin-left: 2px;
 }
 
+.el-tabs--right .el-tabs__content,
+.el-tabs--left .el-tabs__content {
+  height: 100%;
+}
+
 .text-p {
   font-size: 10px;
   color: var(--el-text-color-placeholder);

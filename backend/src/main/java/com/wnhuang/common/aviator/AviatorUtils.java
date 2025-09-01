@@ -4,6 +4,7 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.googlecode.aviator.AviatorEvaluator;
 import com.googlecode.aviator.AviatorEvaluatorInstance;
 import com.googlecode.aviator.Expression;
@@ -31,6 +32,7 @@ public class AviatorUtils {
             aviatorInstance.addInstanceFunctions("s", String.class);
             aviatorInstance.addStaticFunctions("date", DateUtil.class);
             aviatorInstance.addStaticFunctions("random", RandomUtil.class);
+            aviatorInstance.addStaticFunctions("json", JSONUtil.class);
         } catch (IllegalAccessException | NoSuchMethodException e) {
             e.printStackTrace();
         }

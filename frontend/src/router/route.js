@@ -26,6 +26,15 @@ const routes = [
     },
   },
   {
+    path: '/apis',
+    name: 'api接口',
+    component: () => import('@/views/api/config/index.vue'),
+    meta: {
+      title: 'API接口',
+      icon: 'iconfont icon-Checkpoint',
+    },
+  },
+  {
     path: '/migration',
     name: 'migration',
     component: () => import('@/views/migration/index.vue'),
@@ -41,6 +50,15 @@ const routes = [
     meta: {
       title: '数据源',
       icon: 'iconfont icon-shujuyuanguanligongju',
+    },
+  },
+  {
+    path: '/database/monitor',
+    name: 'databaseMonitor',
+    component: () => import('@/views/database/monitor/index.vue'),
+    meta: {
+      title: '数据库监控',
+      icon: 'iconfont icon-peizhishujuyuan',
     },
   },
   {

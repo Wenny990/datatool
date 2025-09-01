@@ -48,6 +48,9 @@
 <script setup>
 import CodeEditor from "@/components/codeEditor/index.vue";
 import DatabaseOption from '@/views/datax/job-build/database-option.vue'
+import { useRequest } from 'alova/client'
+import apis from '@/service/apis'
+import { watch } from 'vue'
 
 
 const props = defineProps({
@@ -61,10 +64,33 @@ const props = defineProps({
     type: Array,
     required: true,
     default: () => []
+  },
+  repoConfigList: {
+    type: Array,
+    required: true,
+    default: () => []
   }
 })
 
-const {writer: ruleForm, repoList} = toRefs(props);
+const {writer: ruleForm, repoList, repoConfigList} = toRefs(props);
+
+watch(
+  () => ruleForm.value.repoId,
+  newVal => {
+    const currRepo = repoList.value.find(t => t.id === newVal)
+    if (currRepo) {
+      const repoConfig = repoConfigList.value.find(
+        t => t.id === currRepo.dataProviderType,
+      )
+      if (repoConfig) {
+        ruleForm.value.identifierBefore = repoConfig.identifierBefore
+        ruleForm.value.identifierAfter = repoConfig.identifierAfter
+      }
+    }
+  },{
+    immediate: true
+  }
+)
 
 const rules = {
   repoId: [{required: true, message: '请选择数据连接'}],

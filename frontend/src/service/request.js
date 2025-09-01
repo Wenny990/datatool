@@ -26,7 +26,7 @@ export const alovaIns = createAlova({
     start()
   },
   // 响应拦截器，也与axios类似
-  responded: async response => {
+  responded: async (response, method) => {
     close()
     if (response.status !== 200) {
       ElMessage.warning(response.statusText)
@@ -37,22 +37,14 @@ export const alovaIns = createAlova({
       // 这边抛出错误时，将会进入请求失败拦截器内
       if (json.errMsg) {
         ElMessage.warning(json.errMsg)
-        // // 空 token 且 状态码 401 不弹提示
-        // if (!computedToken && response.status === 401) {
-        //   removeToken();
-        //   uni.reLaunch({
-        //     url: '/pages/login/index'
-        //   })
-        // } else {
-        //   uni.showToast({
-        //     icon: 'exception',
-        //     title: json.errMsg
-        //   })
-        // }
         throw new Error(json.errMsg)
       } else {
         throw new Error(json.error)
       }
+    }
+    // 判断请求URL是否以 /api/execute/call 开头，如果是则返回整个json，否则返回json.data
+    if (method.url.startsWith('/api/execute/call')) {
+      return json
     }
     return json.data
   },

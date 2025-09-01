@@ -69,6 +69,8 @@ public class RepositoryConfig extends BaseTableField implements Serializable {
 
     private String ddlTemplate;
 
+    private String dbSizeSql;
+
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 
