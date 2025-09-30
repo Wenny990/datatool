@@ -1,0 +1,35 @@
+name: Build ARM64 Docker Image
+
+on:
+  push:
+    branches:
+      - main    # 你可以改成你的分支
+  workflow_dispatch:
+
+jobs:
+  build-arm64:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build ARM64 image and save as tar
+        run: |
+          docker buildx build \
+            --platform linux/arm64 \
+            -t datatool:20250930 \
+            --output type=tar,dest=datatool.tar \
+            .
+      
+      - name: Upload tar as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: datatool-arm64
+          path: datatool.tar
