@@ -31,14 +31,15 @@ jobs:
            -o ./build/datatool-1.0-SNAPSHOT.jar \
            https://github.com/Wenny990/datatool/releases/download/v20250930/datatool-1.0-SNAPSHOT.jar
 
-      # 5. 构建 ARM64 Docker 镜像并导出 tar
+      # 5. 构建 ARM64 Docker 镜像并导出标准 tar
       - name: Build ARM64 Docker image and export tar
         run: |
           docker buildx build \
             --platform linux/arm64 \
             -t datatool:${GITHUB_RUN_NUMBER} \
-            --output type=tar,dest=./datatool-arm64.tar \
+            --load \
             .
+          docker save datatool:${GITHUB_RUN_NUMBER} -o ./datatool-arm64.tar
 
       # 6. 上传 tar 作为 artifact
       - name: Upload artifact
