@@ -281,7 +281,7 @@
             DDL语句
           </template>
 
-          <div class="ddl-container">
+          <div class="ddl-container h100 flex-center">
             <div class="ddl-toolbar">
               <el-button size="small" :icon="CopyDocument" @click="copyDDL">
                 复制DDL
@@ -290,13 +290,14 @@
                 下载DDL
               </el-button>
             </div>
-
-            <code-editor
-              v-model="ddlStatement"
-              type="sql"
-              height="400px"
-              :disabled="true"
-            />
+            <div class="flex-auto">
+              <code-editor
+                v-model="ddlStatement"
+                type="sql"
+                height="100%"
+                :disabled="true"
+              />
+            </div>
           </div>
         </el-tab-pane>
       </el-tabs>
@@ -323,6 +324,9 @@ import {
 import CodeEditor from '@/components/codeEditor/index.vue'
 import apis from '@/service/apis'
 import CustomCard from '@/components/CustomCard.vue'
+import commonFunction from '@/utils/commonFunction'
+
+const { copyText } = commonFunction()
 
 const props = defineProps({
   repositoryId: {
@@ -375,14 +379,14 @@ const filteredIndexes = computed(() => {
 const loadData = async () => {
   loading.value = true
   try {
-    await Promise.all([loadColumns(), loadIndexes(), generateDDL()])
+    await Promise.all([loadColumns(), loadIndexes()])
+    await generateDDL();
   } finally {
     loading.value = false
   }
 }
 
 // 监听属性变化
-
 const loadColumns = async () => {
   try {
     const response = await apis.getTableColumnList({
@@ -460,7 +464,7 @@ const refreshData = () => {
 }
 
 const copyTableName = () => {
-  navigator.clipboard.writeText(props.tableName)
+  copyText(props.tableName)
   ElMessage.success('表名已复制到剪贴板')
 }
 
@@ -500,7 +504,7 @@ const exportColumns = () => {
 }
 
 const copyDDL = () => {
-  navigator.clipboard.writeText(ddlStatement.value)
+  copyText(ddlStatement.value)
   ElMessage.success('DDL语句已复制到剪贴板')
 }
 

@@ -33,6 +33,10 @@ export const alovaIns = createAlova({
       throw new Error(response)
     }
     const json = await response.json()
+    // 判断请求URL是否以 /api/execute/call 开头，如果是则返回整个json，否则返回json.data
+    if (response.status == 200 && method.url.startsWith('/api/execute/call')) {
+      return json
+    }
     if (response.status !== 200 || !json.success) {
       // 这边抛出错误时，将会进入请求失败拦截器内
       if (json.errMsg) {
@@ -42,10 +46,7 @@ export const alovaIns = createAlova({
         throw new Error(json.error)
       }
     }
-    // 判断请求URL是否以 /api/execute/call 开头，如果是则返回整个json，否则返回json.data
-    if (method.url.startsWith('/api/execute/call')) {
-      return json
-    }
+
     return json.data
   },
 })

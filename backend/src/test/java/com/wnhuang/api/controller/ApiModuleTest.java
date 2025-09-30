@@ -3,6 +3,7 @@ package com.wnhuang.api.controller;
 import cn.hutool.json.JSONUtil;
 import com.wnhuang.api.domain.request.ApiCallRequest;
 import com.wnhuang.api.domain.request.ApiConfigRequest;
+import com.wnhuang.api.utils.FtpPdfUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -152,5 +153,13 @@ public class ApiModuleTest {
         System.out.println("脚本1 (data.size()): 期望返回 2");
         System.out.println("脚本2 (data.size() > 0 ? data[0] : null): 期望返回第一条记录");
         System.out.println("脚本3 (data): 期望返回原始数据");
+    }
+
+
+    @Test
+    public void testFtpPdfUtil() throws Exception {
+        String ftpUrl = "ftp://155FTP:LAOhuang_shiGeshen666!@10.9.103.155:21/PDF/22112497/14320220916.PDF";
+        String base64Pdf = FtpPdfUtil.downloadPdf(ftpUrl);
+        System.out.println(base64Pdf);
     }
 }

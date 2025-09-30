@@ -11,17 +11,32 @@
         <property name="LOG_PATTERN" value="%date{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n" />
         <!-- 定义日志存储的路径 -->
         <property name="FILE_PATH" value="./logs" />
-        <property name="FILE_NAME" value="./log" />
+        <property name="FILE_NAME" value="application" />
     </Properties>
 
     <appenders>
         <console name="Console" target="SYSTEM_OUT">
             <!--输出日志的格式-->
-            <PatternLayout  pattern="${LOG_PATTERN}"/>
+            <PatternLayout pattern="${LOG_PATTERN}"/>
             <!--控制台只输出level及其以上级别的信息（onMatch），其他的直接拒绝（onMismatch）-->
             <ThresholdFilter level="debug" onMatch="ACCEPT" onMismatch="DENY"/>
         </console>
 
+        <!-- 添加文件输出配置，按日期命名 -->
+        <RollingFile name="RollingFile" fileName="${FILE_PATH}/${FILE_NAME}.log"
+                     filePattern="${FILE_PATH}/${FILE_NAME}-%d{yyyy-MM-dd}.log">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+            </Policies>
+            <!-- 保留30天的日志文件 -->
+            <DefaultRolloverStrategy>
+                <Delete basePath="${FILE_PATH}" maxDepth="1">
+                    <IfFileName glob="${FILE_NAME}-*.log"/>
+                    <IfLastModified age="30d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
 
     </appenders>
 
@@ -31,15 +46,18 @@
         <!--过滤掉spring和mybatis的一些无用的DEBUG信息-->
         <logger name="org.mybatis" level="info" additivity="false">
             <AppenderRef ref="Console"/>
+            <AppenderRef ref="RollingFile"/>
         </logger>
         <!--监控系统信息-->
         <!--若是additivity设为false，则 子Logger 只会在自己的appender里输出，而不会在 父Logger 的appender里输出。-->
         <Logger name="org.springframework" level="info" additivity="false">
             <AppenderRef ref="Console"/>
+            <AppenderRef ref="RollingFile"/>
         </Logger>
 
         <root level="info">
             <appender-ref ref="Console"/>
+            <appender-ref ref="RollingFile"/>
         </root>
     </loggers>
 

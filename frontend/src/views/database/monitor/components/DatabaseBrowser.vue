@@ -174,6 +174,7 @@ import {
 } from '@element-plus/icons-vue'
 import apis from '@/service/apis'
 import SvgIcon from '@/components/svgIcon/index.vue'
+import commonFunction from '@/utils/commonFunction'
 
 const props = defineProps({
   dataSources: {
@@ -430,7 +431,7 @@ const viewTableStats = async data => {
     statsLoading.value = false
   }
 }
-
+const { copyText } = commonFunction()
 const handleContextMenu = command => {
   switch (command) {
     case 'refresh':
@@ -438,7 +439,7 @@ const handleContextMenu = command => {
       break
     case 'copy':
       if (contextNode.value?.type === 'table') {
-        navigator.clipboard.writeText(contextNode.value.tableName)
+        copyText(contextNode.value.tableName)
         ElMessage.success('表名已复制到剪贴板')
       }
       break

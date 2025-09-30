@@ -176,6 +176,7 @@
         class="status-card"
         shadow="never"
         v-if="summary && summary.connectionStatus === 1"
+        :body-style="{ maxHeight: '240px' }"
       >
         <template #header>
           <div class="card-header">

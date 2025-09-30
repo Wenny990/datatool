@@ -285,14 +285,19 @@ public class OggProcessServiceImpl implements OggProcessService {
         }
         oggProcess.setCheckPointLag(split1[2]);
         oggProcess.setProcessId(Convert.toInt(split2[2], 0));
-        if (result.length > 3 && split3.length >= 4 && "File".equals(split3[3])) {
-            oggProcess.setCheckPointFile(split3[4]);
-            oggProcess.setCheckPointTime(Convert.toLocalDateTime(split4[1] + " " + split4[2]));
-            for (int i = 0; i < split4.length; i++) {
-                if ("RBA".equals(split4[i])) {
-                    oggProcess.setCheckPointRba(Convert.toInt(split4[i + 1], 0));
-                    break;
+        if (result.length > 3 && split3.length >= 4 ) {
+            if( "File".equals(split3[3]) ){
+                oggProcess.setCheckPointFile(split3[4]);
+                oggProcess.setCheckPointTime(Convert.toLocalDateTime(split4[1] + " " + split4[2]));
+                for (int i = 0; i < split4.length; i++) {
+                    if ("RBA".equals(split4[i])) {
+                        oggProcess.setCheckPointRba(Convert.toInt(split4[i + 1], 0));
+                        break;
+                    }
                 }
+            }
+            if("Checkpoint".equalsIgnoreCase(split3[2]) && "VAM".equalsIgnoreCase(split3[0])){
+                oggProcess.setCheckPointTime(Convert.toLocalDateTime(split3[3] + " " + split3[4]));
             }
         }
         return oggProcess;

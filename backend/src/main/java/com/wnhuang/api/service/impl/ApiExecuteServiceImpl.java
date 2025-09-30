@@ -92,7 +92,7 @@ public class ApiExecuteServiceImpl extends ServiceImpl<ApiExecuteLogMapper, ApiE
             long executionTime = System.currentTimeMillis() - startTime;
 
             // 5. 记录执行日志
-            saveExecuteLog(apiConfig, request.getParams(), result, true, null, executionTime, requestIp);
+//            saveExecuteLog(apiConfig, request.getParams(), result, true, null, executionTime, requestIp);
 
             log.info("API调用执行成功，apiCode: {}, 耗时: {}ms", apiCode, executionTime);
             return ApiCallResponse.success(apiCode, result, executionTime);

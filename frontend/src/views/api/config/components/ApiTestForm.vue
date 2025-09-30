@@ -14,9 +14,6 @@
         </el-col>
       </el-row>
 
-
-
-
       <el-form-item label="接口类型">
         <el-tag :type="apiConfig.apiType === 1 ? 'success' : 'info'">
           {{ apiConfig.apiType === 1 ? 'HTTP接口' : 'SQL查询' }}
@@ -25,40 +22,61 @@
 
       <!-- HTTP接口配置预览 -->
       <template v-if="apiConfig.apiType === 1 && httpConfigPreview">
-      <div class="mb20 ml20">
-        <el-descriptions border :column="2" size="small">
-          <el-descriptions-item label="请求方法" span="2">
-            <template #label>
-              <div style="width: 70px" class="cell-item">
-                请求方法
-              </div>
-            </template>
-            <el-tag size="small">{{ httpConfigPreview.method }}</el-tag>
-          </el-descriptions-item>
-          <el-descriptions-item label="请求URL" span="2">
-            {{ httpConfigPreview.url }}
-          </el-descriptions-item>
-          <el-descriptions-item label="请求头" span="2">
-            <el-tag v-for="header in httpConfigPreview.headers" :key="header.key" size="small" style="margin-right: 4px;">
-              {{ header.key }}: {{ header.value }}
-            </el-tag>
-            <span v-if="!httpConfigPreview.headers || httpConfigPreview.headers.length === 0">无</span>
-          </el-descriptions-item>
-          <el-descriptions-item label="查询参数" span="2">
-            <el-tag v-for="param in httpConfigPreview.queryParams" :key="param.key" size="small" style="margin-right: 4px;">
-              {{ param.key }}={{ param.value }}
-            </el-tag>
-            <span v-if="!httpConfigPreview.queryParams || httpConfigPreview.queryParams.length === 0">无</span>
-          </el-descriptions-item>
-          <el-descriptions-item label="请求体类型">
-            <el-tag size="small" :type="getBodyTypeTagType(httpConfigPreview.body?.type)">
-              {{ getBodyTypeLabel(httpConfigPreview.body?.type) }}
-            </el-tag>
-          </el-descriptions-item>
-        </el-descriptions>
-      </div>
-
-
+        <div class="mb20 ml20">
+          <el-descriptions border :column="2" size="small">
+            <el-descriptions-item label="请求方法" span="2">
+              <template #label>
+                <div style="width: 70px" class="cell-item">请求方法</div>
+              </template>
+              <el-tag size="small">{{ httpConfigPreview.method }}</el-tag>
+            </el-descriptions-item>
+            <el-descriptions-item label="请求URL" span="2">
+              {{ httpConfigPreview.url }}
+            </el-descriptions-item>
+            <el-descriptions-item label="请求头" span="2">
+              <el-tag
+                v-for="header in httpConfigPreview.headers"
+                :key="header.key"
+                size="small"
+                style="margin-right: 4px"
+              >
+                {{ header.key }}: {{ header.value }}
+              </el-tag>
+              <span
+                v-if="
+                  !httpConfigPreview.headers ||
+                  httpConfigPreview.headers.length === 0
+                "
+                >无</span
+              >
+            </el-descriptions-item>
+            <el-descriptions-item label="查询参数" span="2">
+              <el-tag
+                v-for="param in httpConfigPreview.queryParams"
+                :key="param.key"
+                size="small"
+                style="margin-right: 4px"
+              >
+                {{ param.key }}={{ param.value }}
+              </el-tag>
+              <span
+                v-if="
+                  !httpConfigPreview.queryParams ||
+                  httpConfigPreview.queryParams.length === 0
+                "
+                >无</span
+              >
+            </el-descriptions-item>
+            <el-descriptions-item label="请求体类型">
+              <el-tag
+                size="small"
+                :type="getBodyTypeTagType(httpConfigPreview.body?.type)"
+              >
+                {{ getBodyTypeLabel(httpConfigPreview.body?.type) }}
+              </el-tag>
+            </el-descriptions-item>
+          </el-descriptions>
+        </div>
       </template>
 
       <el-form-item label="请求参数">
@@ -66,7 +84,8 @@
           v-model="testForm.params"
           type="json"
           height="200px"
-          placeholder='{"param1": "value1", "param2": "value2"}' />
+          placeholder='{"param1": "value1", "param2": "value2"}'
+        />
       </el-form-item>
 
       <el-form-item>
@@ -74,7 +93,9 @@
           {{ testing ? '测试中...' : '执行测试' }}
         </el-button>
         <el-button @click="handleClear">清空结果</el-button>
-        <el-button @click="handleGenerateExample" v-if="apiConfig.apiType === 1">生成示例参数</el-button>
+        <el-button @click="handleGenerateExample" v-if="apiConfig.apiType === 1"
+          >生成示例参数</el-button
+        >
       </el-form-item>
     </el-form>
 
@@ -84,7 +105,7 @@
       <el-descriptions border :column="2">
         <el-descriptions-item label="执行状态">
           <el-tag :type="testResult.success ? 'success' : 'danger'">
-            {{ testResult ? '成功' : '失败' }}
+            {{ testResult.success ? '成功' : '失败' }}
           </el-tag>
         </el-descriptions-item>
         <el-descriptions-item label="执行耗时">
@@ -98,7 +119,8 @@
           v-model="formattedResult"
           type="json"
           height="300px"
-          :disabled="true" />
+          :disabled="true"
+        />
       </div>
 
       <div v-if="testResult.errorMessage" class="error-message">
@@ -107,7 +129,8 @@
           :title="testResult.errorMessage"
           type="error"
           show-icon
-          :closable="false" />
+          :closable="false"
+        />
       </div>
     </div>
 
@@ -126,8 +149,8 @@ import apis from '@/service/apis'
 const props = defineProps({
   apiConfig: {
     type: Object,
-    required: true
-  }
+    required: true,
+  },
 })
 
 const emit = defineEmits(['close'])
@@ -138,7 +161,7 @@ const testResult = ref(null)
 const httpConfigPreview = ref(null)
 
 const testForm = reactive({
-  params: ''
+  params: '',
 })
 
 const formattedResult = computed(() => {
@@ -148,8 +171,6 @@ const formattedResult = computed(() => {
     return String(testResult.value)
   }
 })
-
-
 
 const handleTest = async () => {
   if (!testForm.params.trim()) {
@@ -166,17 +187,16 @@ const handleTest = async () => {
 
     const response = await apis.callApi({
       apiCode: props.apiConfig.apiCode,
-      params: params
+      params: params,
     })
 
     testResult.value = response
 
-    if (response) {
+    if (testResult.value.success) {
       ElMessage.success('测试执行成功')
     } else {
       ElMessage.error('测试执行失败')
     }
-
   } catch (error) {
     if (error.name === 'SyntaxError') {
       ElMessage.error('请求参数格式不正确，请输入有效的JSON')
@@ -185,7 +205,7 @@ const handleTest = async () => {
       testResult.value = {
         success: false,
         errorMessage: error.message || '未知错误',
-        executionTime: 0
+        executionTime: 0,
       }
     }
   } finally {
@@ -199,7 +219,7 @@ const handleClear = () => {
 }
 
 // 生成示例参数
-const generateExampleParams = (config) => {
+const generateExampleParams = config => {
   const exampleParams = {}
 
   // 从 HTTP 配置中提取参数
@@ -257,49 +277,53 @@ const handleGenerateExample = () => {
 }
 
 // 监听API配置变化，设置默认参数
-watch(() => props.apiConfig, (newConfig) => {
-  if (newConfig) {
-    // 解析HTTP配置预览
-    if (newConfig.apiType === 1 && newConfig.httpRequestConfig) {
-      try {
-        httpConfigPreview.value = JSON.parse(newConfig.httpRequestConfig)
-      } catch (e) {
-        console.warn('解析HTTP配置失败:', e)
+watch(
+  () => props.apiConfig,
+  newConfig => {
+    if (newConfig) {
+      // 解析HTTP配置预览
+      if (newConfig.apiType === 1 && newConfig.httpRequestConfig) {
+        try {
+          httpConfigPreview.value = JSON.parse(newConfig.httpRequestConfig)
+        } catch (e) {
+          console.warn('解析HTTP配置失败:', e)
+          httpConfigPreview.value = null
+        }
+      } else {
         httpConfigPreview.value = null
       }
-    } else {
-      httpConfigPreview.value = null
+
+      // 生成示例参数
+      generateExampleParams(newConfig)
     }
 
-    // 生成示例参数
-    generateExampleParams(newConfig)
-  }
-
-  // 重置测试结果
-  testResult.value = null
-  hasExecuted.value = false
-}, { immediate: true })
+    // 重置测试结果
+    testResult.value = null
+    hasExecuted.value = false
+  },
+  { immediate: true },
+)
 
 // 获取请求体类型标签类型
-const getBodyTypeTagType = (type) => {
+const getBodyTypeTagType = type => {
   const typeMap = {
-    'none': 'info',
+    none: 'info',
     'form-data': 'success',
     'x-www-form-urlencoded': 'warning',
-    'raw': 'primary',
-    'binary': 'danger'
+    raw: 'primary',
+    binary: 'danger',
   }
   return typeMap[type] || 'info'
 }
 
 // 获取请求体类型标签文本
-const getBodyTypeLabel = (type) => {
+const getBodyTypeLabel = type => {
   const labelMap = {
-    'none': '无',
+    none: '无',
     'form-data': 'Form Data',
     'x-www-form-urlencoded': 'URL Encoded',
-    'raw': 'Raw',
-    'binary': 'Binary'
+    raw: 'Raw',
+    binary: 'Binary',
   }
   return labelMap[type] || '未知'
 }
@@ -329,7 +353,7 @@ const getBodyTypeLabel = (type) => {
 
 .error-message h4 {
   margin-bottom: 10px;
-  color: #F56C6C;
+  color: #f56c6c;
 }
 
 .no-result {

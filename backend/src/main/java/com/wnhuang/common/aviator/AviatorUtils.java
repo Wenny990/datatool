@@ -8,6 +8,7 @@ import cn.hutool.json.JSONUtil;
 import com.googlecode.aviator.AviatorEvaluator;
 import com.googlecode.aviator.AviatorEvaluatorInstance;
 import com.googlecode.aviator.Expression;
+import com.wnhuang.api.utils.FtpPdfUtil;
 import org.springframework.util.Assert;
 
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ public class AviatorUtils {
             aviatorInstance.addStaticFunctions("date", DateUtil.class);
             aviatorInstance.addStaticFunctions("random", RandomUtil.class);
             aviatorInstance.addStaticFunctions("json", JSONUtil.class);
+            aviatorInstance.addStaticFunctions("ftp", FtpPdfUtil.class);
         } catch (IllegalAccessException | NoSuchMethodException e) {
             e.printStackTrace();
         }

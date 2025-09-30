@@ -110,7 +110,7 @@
         <!-- 表格视图 -->
         <div class="flex-auto" v-show="viewMode === 'table'">
           <el-table
-            v-loading="loadinData"
+            v-loading="loadingData"
             ref="dataTableRef"
             :data="tableData"
             border
@@ -120,7 +120,6 @@
             :header-cell-style="{ background: '#f8f9fa', color: '#606266' }"
             @selection-change="handleSelectionChange"
             @row-click="handleRowClick"
-            @cell-dblclick="handleCellClick"
             highlight-current-row
           >
             <el-table-column type="index" label="#" width="60" align="center" />
@@ -468,6 +467,9 @@ import {
 import apis from '@/service/apis'
 import CustomCard from '@/components/CustomCard.vue'
 import SvgIcon from '@/components/svgIcon/index.vue'
+import commonFunction from '@/utils/commonFunction'
+
+const { copyText } = commonFunction()
 
 const props = defineProps({
   repositoryId: {
@@ -486,7 +488,7 @@ const props = defineProps({
 
 // 响应式数据
 const loading = ref(false)
-const loadinData = ref(false)
+const loadingData = ref(false)
 const dataTableRef = ref()
 const tableData = ref([])
 const columns = ref([])
@@ -547,7 +549,7 @@ const loadColumns = async () => {
 }
 
 const loadData = async () => {
-  loadinData.value = true
+  loadingData.value = true
   const startTime = Date.now()
 
   try {
@@ -570,7 +572,7 @@ const loadData = async () => {
     console.error('查询表数据失败:', error)
     tableData.value = []
   } finally {
-    loadinData.value = false
+    loadingData.value = false
   }
 }
 
@@ -682,7 +684,7 @@ const handleColumnAction = (command, column) => {
       )
       break
     case 'copy':
-      navigator.clipboard.writeText(column.columnName)
+      copyText(column.columnName)
       ElMessage.success('列名已复制到剪贴板')
       break
   }
@@ -710,7 +712,7 @@ const resetColumns = () => {
 const switchViewMode = (mode) => {
   viewMode.value = mode
   if (mode === 'row' && tableData.value.length > 0) {
-    currentRowIndex.value = 0
+    // currentRowIndex.value = 0
   }
 }
 
@@ -806,7 +808,7 @@ const formatCellContentForViewer = (value) => {
 
 const copyCellContent = () => {
   const content = formatCellContentForViewer(cellViewerData.value.value)
-  navigator.clipboard.writeText(content)
+  copyText(content)
   ElMessage.success('内容已复制到剪贴板')
 }
 
@@ -1181,7 +1183,10 @@ watch(
   cursor: pointer;
   padding: 4px 8px;
   border-radius: 4px;
+  /* 添加以下属性来解决界面摇晃问题 */
+  border: 1px solid transparent;
   transition: all 0.2s;
+
 }
 
 .field-value:hover {
@@ -1252,11 +1257,13 @@ watch(
 /* 单元格可点击样式 */
 .cell-content {
   cursor: pointer;
+  border: 1px solid transparent;
   transition: all 0.2s;
 }
 
 .cell-content:hover {
   background-color: rgba(64, 158, 255, 0.1);
   border-radius: 2px;
+  border: 1px solid #409eff;
 }
 </style>
