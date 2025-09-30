@@ -11,39 +11,46 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout 代码
-      - uses: actions/checkout@v3
+      # 1. 检出代码
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      # 2. 设置 QEMU 支持多架构构建
-      - uses: docker/setup-qemu-action@v3
+      # 2. 设置 QEMU 模拟器以支持跨平台构建
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
       # 3. 设置 Docker Buildx
-      - uses: docker/setup-buildx-action@v3
-        with:
-          install: true
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       # 4. 下载 Release JAR
       - name: Download Release JAR
         run: |
           mkdir -p ./build
-          curl -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -o ./build/datatool-1.0-SNAPSHOT.jar \
-            $(curl -s https://api.github.com/repos/${{ github.repository }}/releases/tags/${GITHUB_REF##*/} \
-            | grep "browser_download_url.*datatool-1.0-SNAPSHOT.jar" \
-            | cut -d '"' -f 4)
+          TAG=${GITHUB_REF#refs/tags/}
+          JAR_URL=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/repos/${{ github.repository }}/releases/tags/$TAG \
+            | jq -r '.assets[] | select(.name=="datatool-1.0-SNAPSHOT.jar") | .browser_download_url')
+          
+          if [ -z "$JAR_URL" ]; then
+            echo "Release JAR not found for tag $TAG"
+            exit 1
+          fi
 
-      # 5. 构建 ARM64 Docker 镜像并导出标准 tar
+          curl -L -o ./build/datatool-1.0-SNAPSHOT.jar "$JAR_URL"
+
+      # 5. 构建 ARM64 Docker 镜像并导出 tar
       - name: Build ARM64 Docker image and export tar
         run: |
           docker buildx build \
             --platform linux/arm64 \
             -t datatool:${GITHUB_RUN_NUMBER} \
-            --load \
+            --output type=tar,dest=./datatool-arm64.tar \
             .
-          docker save datatool:${GITHUB_RUN_NUMBER} -o ./datatool-arm64.tar
 
-      # 6. 上传 tar 文件作为 artifact
-      - uses: actions/upload-artifact@v4
+      # 6. 上传 tar 作为 artifact
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
           name: datatool-arm64
           path: ./datatool-arm64.tar
