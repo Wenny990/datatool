@@ -27,17 +27,9 @@ jobs:
       - name: Download Release JAR
         run: |
           mkdir -p ./build
-          TAG=${GITHUB_REF#refs/tags/}
-          JAR_URL=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            https://api.github.com/repos/${{ github.repository }}/releases/tags/$TAG \
-            | jq -r '.assets[] | select(.name=="datatool-1.0-SNAPSHOT.jar") | .browser_download_url')
-          
-          if [ -z "$JAR_URL" ]; then
-            echo "Release JAR not found for tag $TAG"
-            exit 1
-          fi
-
-          curl -L -o ./build/datatool-1.0-SNAPSHOT.jar "$JAR_URL"
+          curl -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+           -o ./build/datatool-1.0-SNAPSHOT.jar \
+           https://github.com/Wenny990/datatool/releases/download/v20250930/datatool-1.0-SNAPSHOT.jar
 
       # 5. 构建 ARM64 Docker 镜像并导出 tar
       - name: Build ARM64 Docker image and export tar
