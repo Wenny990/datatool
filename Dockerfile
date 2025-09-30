@@ -12,7 +12,7 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/re
     && apk add --update ttf-dejavu fontconfig && rm -rf /var/cache/apk/*
 
 # 复制本地的Java应用程序到容器内的指定目录
-add ./*.jar /usr/app/app.jar
+COPY build/datatool-1.0-SNAPSHOT.jar /usr/app/app.jar
  
 # 设置工作目录为容器内的/usr/app
 WORKDIR /usr/app
