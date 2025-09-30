@@ -25,7 +25,7 @@ jobs:
       with:
         repository: ${{ github.repository }}
         tag: v20250930        # 对应你的 Release tag
-        asset_name: datatool.jar
+        asset_name: datatool-1.0-SNAPSHOT.jar
         path: ./build         # 下载到 build 目录
 
     - name: Build ARM64 Docker image and export tar
