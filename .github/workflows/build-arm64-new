@@ -1,0 +1,56 @@
+name: Build ARM64 Docker Image
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. 检出代码
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. 使用 GitHub 的容器 registry 设置 QEMU
+      - name: Set up QEMU from GHCR
+        run: |
+          # 直接从 GitHub Container Registry 拉取
+          docker pull ghcr.io/tonistiigi/binfmt:latest
+          docker run --rm --privileged ghcr.io/tonistiigi/binfmt:latest --install all
+
+      # 3. 设置 Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            network=host
+
+      # 4. 下载 Release JAR
+      - name: Download Release JAR
+        run: |
+          mkdir -p ./build
+          curl -f -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -o "./build/datatool-1.0-SNAPSHOT.jar" \
+            "https://github.com/Wenny990/datatool/releases/download/v20250930/datatool-1.0-SNAPSHOT.jar"
+
+      # 5. 构建镜像
+      - name: Build ARM64 Docker image
+        run: |
+          docker buildx build \
+            --platform linux/arm64 \
+            -t datatool:${{ github.run_number }} \
+            --load \
+            .
+          
+          docker save datatool:${{ github.run_number }} -o ./datatool-arm64.tar
+
+      # 6. 上传 artifact
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: datatool-arm64-${{ github.run_number }}
+          path: ./datatool-arm64.tar
