@@ -19,9 +19,10 @@ jobs:
       - name: Install QEMU
         run: |
           sudo apt-get update
-          sudo apt-get install -y qemu qemu-user-static qemu-user binfmt-support
+          # 安装正确的包名
+          sudo apt-get install -y qemu-system-x86 qemu-user-static qemu-utils binfmt-support
           # 注册 ARM64 支持
-          docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+          sudo update-binfmts --enable qemu-aarch64
 
       # 3. 下载 Release JAR
       - name: Download Release JAR
