@@ -1,4 +1,4 @@
-name: Build ARM64 Docker Image New
+name: Build ARM64 Docker Image
 
 on:
   workflow_dispatch:
@@ -15,53 +15,52 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. 直接安装 QEMU（跳过 Docker Hub）
-      - name: Install QEMU
-        run: |
-          sudo apt-get update
-          # 安装正确的包名
-          sudo apt-get install -y qemu-system-x86 qemu-user-static qemu-utils binfmt-support
-          # 注册 ARM64 支持
-          sudo update-binfmts --enable qemu-aarch64
+      # 2. 登录 GHCR（GitHub Container Registry）
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      # 3. 下载 Release JAR
+      # 3. 设置 QEMU 模拟器以支持跨平台构建
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      # 4. 设置 Docker Buildx（改为 GHCR）
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            image=moby/buildkit:buildx-stable-1
+          buildkitd-config-inline: |
+            [registry."ghcr.io"]
+              mirrors = ["ghcr.io"]
+
+      # 5. 下载 Release JAR
       - name: Download Release JAR
         run: |
           mkdir -p ./build
-          curl -f -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -o "./build/datatool-1.0-SNAPSHOT.jar" \
-            "https://github.com/Wenny990/datatool/releases/download/v20250930/datatool-1.0-SNAPSHOT.jar"
-          ls -la ./build/
+          curl -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+           -o ./build/datatool-1.0-SNAPSHOT.jar \
+           https://github.com/Wenny990/datatool/releases/download/v20250930/datatool-1.0-SNAPSHOT.jar
 
-      # 3. 预先拉取基础镜像（使用国内源）
-      - name: Pre-pull base image
+      # 6. 构建 ARM64 Docker 镜像并导出 tar
+      - name: Build ARM64 Docker image and export tar
         run: |
-          # 尝试从多个源拉取镜像
-          docker pull registry.cn-hangzhou.aliyuncs.com/library/openjdk:8-jre-slim ||
-          docker pull mirror.gcr.io/library/openjdk:8-jre-slim ||
-          docker pull openjdk:8-jre-slim
-          
-      # 4. 使用标准 Docker build 构建 ARM64 镜像
-      - name: Build ARM64 Docker image
-        run: |
-          # 使用默认的 Dockerfile，不指定文件
+          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/datatool:${GITHUB_RUN_NUMBER}
+
           docker buildx build \
             --platform linux/arm64 \
-            -t datatool:${{ github.run_number }} \
+            -t $IMAGE_NAME \
             --load \
             .
-          
-          # 验证镜像
-          docker images
-          
-          # 保存为 tar 文件
-          docker save datatool:${{ github.run_number }} -o ./datatool-arm64.tar
-          ls -lh ./datatool-arm64.tar
 
-      # 5. 上传 artifact
+          docker save $IMAGE_NAME -o ./datatool-arm64.tar
+
+      # 7. 上传 tar 作为 artifact
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: datatool-arm64-${{ github.run_number }}
+          name: datatool-arm64
           path: ./datatool-arm64.tar
-          retention-days: 30
