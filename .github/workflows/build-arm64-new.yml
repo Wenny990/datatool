@@ -11,35 +11,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ 检出代码
+      # 1. 检出代码
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      # 2️⃣ 登录 GHCR
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      # 2. 手动启用 QEMU（无需从 Docker Hub 拉镜像）
+      - name: Enable QEMU manually
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-user-static
+          docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
 
-      # 3️⃣ 设置 QEMU（从 GHCR 拉取特定版本）
-      - name: Set up QEMU (GHCR mirror)
-        uses: docker/setup-qemu-action@v3
-        with:
-          image: ghcr.io/tonistiigi/binfmt:qemu-v8.0.0
-
-      # 4️⃣ 设置 Docker Buildx（改为 GHCR registry）
+      # 3. 设置 Docker Buildx（不依赖 docker.io）
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-        with:
-          driver-opts: |
-            image=moby/buildkit:buildx-stable-1
-          buildkitd-config-inline: |
-            [registry."ghcr.io"]
-              mirrors = ["ghcr.io"]
 
-      # 5️⃣ 下载 Release JAR
+      # 4. 下载 Release JAR
       - name: Download Release JAR
         run: |
           mkdir -p ./build
@@ -47,20 +34,17 @@ jobs:
            -o ./build/datatool-1.0-SNAPSHOT.jar \
            https://github.com/Wenny990/datatool/releases/download/v20250930/datatool-1.0-SNAPSHOT.jar
 
-      # 6️⃣ 构建 ARM64 Docker 镜像并导出 tar
+      # 5. 构建 ARM64 Docker 镜像并导出 tar
       - name: Build ARM64 Docker image and export tar
         run: |
-          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/datatool:${GITHUB_RUN_NUMBER}
-
           docker buildx build \
             --platform linux/arm64 \
-            -t $IMAGE_NAME \
+            -t ghcr.io/${{ github.repository_owner }}/datatool:${GITHUB_RUN_NUMBER} \
             --load \
             .
+          docker save ghcr.io/${{ github.repository_owner }}/datatool:${GITHUB_RUN_NUMBER} -o ./datatool-arm64.tar
 
-          docker save $IMAGE_NAME -o ./datatool-arm64.tar
-
-      # 7️⃣ 上传 tar 作为 artifact
+      # 6. 上传 tar 作为 artifact
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
