@@ -36,10 +36,11 @@ jobs:
       # 4. 使用标准 Docker build 构建 ARM64 镜像
       - name: Build ARM64 Docker image
         run: |
-          # 使用标准 docker build 命令
-          docker build \
+          # 使用默认的 Dockerfile，不指定文件
+          docker buildx build \
+            --platform linux/arm64 \
             -t datatool:${{ github.run_number }} \
-            -f Dockerfile.arm64 \
+            --load \
             .
           
           # 验证镜像
