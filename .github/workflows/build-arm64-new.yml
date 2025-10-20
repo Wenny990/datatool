@@ -8,33 +8,50 @@ on:
 
 jobs:
   build:
-    runs-on: [self-hosted, linux, ARM64]  # 直接在 ARM64 机器上运行
+    runs-on: ubuntu-latest
 
     steps:
       # 1. 检出代码
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. 下载 Release JAR
+      # 2. 直接安装 QEMU（跳过 Docker Hub）
+      - name: Install QEMU
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu qemu-user-static qemu-user binfmt-support
+          # 注册 ARM64 支持
+          docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+
+      # 3. 下载 Release JAR
       - name: Download Release JAR
         run: |
           mkdir -p ./build
           curl -f -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -o "./build/datatool-1.0-SNAPSHOT.jar" \
             "https://github.com/Wenny990/datatool/releases/download/v20250930/datatool-1.0-SNAPSHOT.jar"
+          ls -la ./build/
 
-      # 3. 在原生 ARM64 环境构建
-      - name: Build Docker image natively
+      # 4. 使用标准 Docker build 构建 ARM64 镜像
+      - name: Build ARM64 Docker image
         run: |
+          # 使用标准 docker build 命令
           docker build \
             -t datatool:${{ github.run_number }} \
+            -f Dockerfile.arm64 \
             .
           
+          # 验证镜像
+          docker images
+          
+          # 保存为 tar 文件
           docker save datatool:${{ github.run_number }} -o ./datatool-arm64.tar
+          ls -lh ./datatool-arm64.tar
 
-      # 4. 上传 artifact
+      # 5. 上传 artifact
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: datatool-arm64-${{ github.run_number }}
           path: ./datatool-arm64.tar
+          retention-days: 30
