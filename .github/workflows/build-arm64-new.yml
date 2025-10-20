@@ -26,6 +26,8 @@ jobs:
       # 3. 设置 QEMU 模拟器以支持跨平台构建
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
+        with:
+          image: ghcr.io/tonistiigi/binfmt:latest
 
       # 4. 设置 Docker Buildx（改为 GHCR）
       - name: Set up Docker Buildx
