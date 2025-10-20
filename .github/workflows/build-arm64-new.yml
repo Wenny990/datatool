@@ -33,6 +33,14 @@ jobs:
             "https://github.com/Wenny990/datatool/releases/download/v20250930/datatool-1.0-SNAPSHOT.jar"
           ls -la ./build/
 
+      # 3. 预先拉取基础镜像（使用国内源）
+      - name: Pre-pull base image
+        run: |
+          # 尝试从多个源拉取镜像
+          docker pull registry.cn-hangzhou.aliyuncs.com/library/openjdk:8-jre-slim ||
+          docker pull mirror.gcr.io/library/openjdk:8-jre-slim ||
+          docker pull openjdk:8-jre-slim
+          
       # 4. 使用标准 Docker build 构建 ARM64 镜像
       - name: Build ARM64 Docker image
         run: |
