@@ -15,13 +15,13 @@ jobs:
       
     - name: Pull and save Docker image
       run: |
-        docker pull openjdk:8-jre-alpine
-        docker save -o openjdk-8-jre-alpine.tar openjdk:8-jre-alpine
-        ls -lh openjdk-8-jre-alpine.tar
+        docker pull --platform linux/arm64 bitnamilegacy/clickhouse:24.10.1
+        docker save -o clickhouse-24.10.1.tar bitnamilegacy/clickhouse:24.10.1
+        ls -lh clickhouse-24.10.1.tar
         
     - name: Upload image artifact
       uses: actions/upload-artifact@v4
       with:
-        name: openjdk-image
-        path: openjdk-8-jre-alpine.tar
-        retention-days: 30
+        name: clickhouse-image
+        path: clickhouse-24.10.1.tar
+        retention-days: 7
