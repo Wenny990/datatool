@@ -15,8 +15,8 @@ jobs:
       
     - name: Pull and save Docker image
       run: |
-        docker pull --platform linux/arm64 openjdk:8-jdk-alpine3.9
-        docker save -o jdk8-arm.tar openjdk:8-jdk-alpine3.9
+        docker pull --platform linux/arm64 openjdk:8-jdk-alpine
+        docker save -o jdk8-arm.tar openjdk:8-jdk-alpine
         ls -lh jdk8-arm.tar
         
     - name: Upload image artifact
